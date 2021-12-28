@@ -70,7 +70,7 @@ cargo-minimal-versions requires nightly
 toolchain (to run `cargo update -Z minimal-versions`) and [cargo-hack] (to run `cargo check` & `cargo build` proper):
 
 ```sh
-rustup component add nightly
+rustup toolchain add nightly
 cargo install cargo-hack
 ```
 
