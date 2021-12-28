@@ -1,0 +1,124 @@
+name: CI
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - dev
+      - staging
+  schedule:
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+
+env:
+  CARGO_INCREMENTAL: 0
+  CARGO_NET_RETRY: 10
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  RUSTFLAGS: -D warnings
+  RUSTUP_MAX_RETRIES: 10
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rust: stable
+          - rust: beta
+          - rust: nightly
+          - rust: nightly
+            os: macos-latest
+          - rust: nightly
+            os: windows-latest
+          - rust: nightly
+            target: x86_64-unknown-linux-musl
+    runs-on: ${{ matrix.os || 'ubuntu-18.04' }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - uses: taiki-e/github-actions/install-rust@main
+        with:
+          toolchain: ${{ matrix.rust }}
+      - run: cargo install cross --debug
+        if: matrix.target != ''
+      - uses: taiki-e/github-actions/install@main
+        with:
+          tool: cargo-hack
+      - run: echo "RUSTFLAGS=${RUSTFLAGS} -C target-feature=+crt-static" >> "${GITHUB_ENV}"
+        if: startsWith(matrix.os, 'windows')
+      - run: cross test --target ${{ matrix.target }}
+        if: matrix.target != ''
+      - run: cargo test --workspace
+        if: matrix.target == ''
+      - run: tools/check-minimal-versions.sh
+        if: startsWith(matrix.rust, 'nightly')
+      - run: cargo install --path . --debug
+      - run: rustup toolchain add nightly
+      - run: cargo minimal-versions check --workspace --all-features --ignore-private -v
+      - run: cargo minimal-versions build --workspace --all-features --ignore-private -v
+      - run: cargo minimal-versions test --workspace --all-features -v
+
+  build:
+    strategy:
+      matrix:
+        range:
+          # This is the minimum supported Rust version of this crate.
+          # When updating this, the reminder to update the minimum supported
+          # Rust version in README.md, Cargo.toml, and .clippy.toml.
+          - 1.51..
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - uses: taiki-e/github-actions/install@main
+        with:
+          tool: cargo-hack
+      - run: cargo hack build --workspace --ignore-private --no-dev-deps --version-range ${{ matrix.range }} --version-step 2
+
+  tidy:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+      - uses: taiki-e/github-actions/install-rust@main
+        with:
+          component: clippy,rustfmt
+      - uses: taiki-e/github-actions/install@main
+        with:
+          tool: shellcheck
+      - run: cargo fmt --all -- --check
+        if: always()
+      - run: cargo clippy --workspace --all-features --all-targets
+        if: always()
+      - run: shellcheck **/*.sh
+        if: always()
+
+  # This job doesn't actually test anything, but they're used to tell bors the
+  # build completed, as there is no practical way to detect when a workflow is
+  # successful listening to webhooks only.
+  #
+  # ALL THE PREVIOUS JOBS NEEDS TO BE ADDED TO THE `needs` SECTION OF THIS JOB!
+
+  ci-success:
+    name: ci
+    if: github.event_name == 'push' && success()
+    needs:
+      - test
+      - build
+      - tidy
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Mark the job as a success
+        run: exit 0

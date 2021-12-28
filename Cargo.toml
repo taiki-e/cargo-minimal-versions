@@ -1,0 +1,34 @@
+[package]
+name = "cargo-minimal-versions"
+version = "0.1.0"
+edition = "2018"
+rust-version = "1.51"
+license = "Apache-2.0 OR MIT"
+repository = "https://github.com/taiki-e/cargo-minimal-versions"
+keywords = ["cargo", "subcommand", "testing"]
+categories = ["command-line-utilities", "development-tools::cargo-plugins", "development-tools::testing"]
+exclude = ["/.*", "/tools"]
+description = """
+Wrapper for proper use of -Z minimal-versions.
+"""
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[workspace]
+resolver = "2"
+
+[dependencies]
+anyhow = "1.0.34"
+atty = "0.2.11"
+camino = "1.0.5"
+cargo_metadata = "0.14"
+ctrlc = { version = "3.1.4", features = ["termination"] }
+fs-err = "2.5"
+serde_json = "1"
+shell-escape = "0.1.5"
+slab = "0.4.4"
+termcolor = "1"
+toml = "0.5.2"
+
+[dev-dependencies]
