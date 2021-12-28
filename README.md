@@ -43,8 +43,7 @@ To check all crates with minimal version dependencies:
 cargo minimal-versions check --workspace
 ```
 
-Normally, crates with `publish = false` does not needs minimal version check.
-To check all public crates with minimal version dependencies:
+Normally, crates with `publish = false` do not need minimal version check. You can skip these crates by using `--ignore-private` flag.
 
 ```sh
 cargo minimal-versions check --workspace --ignore-private
@@ -56,11 +55,11 @@ Using `-Z minimal-versions` in the usual way will not work properly in many case
 
 > If I remember correctly, `cargo check -Z minimal-versions` doesn't really do anything. It needs to be separated into `cargo update -Z minimal-versions` and `cargo check`.
 >
-> Also, dev-dependencies may raise version requirements. Ideally, remove them before run `cargo update -Z minimal-versions`.
+> Also, dev-dependencies may raise version requirements. Ideally, remove them before run `cargo update -Z minimal-versions`. (Also, note that `Cargo.lock` is actually shared within the workspace. However as far as I know, there is no workaround for this yet.)
 
 In addition, due to cargo's feature integration, it is not correct to run `cargo check` or `cargo build` with `-p` (`--package`) or `--workspace` (`--all`) or on virtual manifest. To handle this problem correctly, you need the workspace handling provided by subcommands such as [`cargo hack`][cargo-hack].
 
-cargo-minimal-versions addresses these issues and makes it easy to run cargo commands with `-Z minimal-versions`.
+cargo-minimal-versions addresses most of these issues and makes it easy to run cargo commands with `-Z minimal-versions`.
 
 ## Installation
 
