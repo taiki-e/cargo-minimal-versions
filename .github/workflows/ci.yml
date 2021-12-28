@@ -53,16 +53,16 @@ jobs:
         if: matrix.target != ''
       - uses: taiki-e/github-actions/install@main
         with:
-          tool: cargo-hack
+          tool: cargo-hack,cargo-minimal-versions
       - run: echo "RUSTFLAGS=${RUSTFLAGS} -C target-feature=+crt-static" >> "${GITHUB_ENV}"
         if: startsWith(matrix.os, 'windows')
       - run: cross test --target ${{ matrix.target }}
         if: matrix.target != ''
       - run: cargo test --workspace
         if: matrix.target == ''
-      - run: tools/check-minimal-versions.sh
+      - run: cargo minimal-versions check --workspace --all-features --ignore-private
         if: startsWith(matrix.rust, 'nightly')
-      - run: cargo install --path . --debug
+      - run: cargo install -f --path . --debug
       - run: rustup toolchain add nightly
       - run: cargo minimal-versions check --workspace --all-features --ignore-private -v
       - run: cargo minimal-versions build --workspace --all-features --ignore-private -v
