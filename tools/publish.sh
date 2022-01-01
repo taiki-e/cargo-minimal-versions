@@ -21,8 +21,8 @@ if [[ $# -gt 0 ]]; then
     bail "invalid argument '$1'"
 fi
 
-# Make sure that the version number of publishable workspace members matches the specified version.
-metadata="$(cargo metadata --all-features --format-version=1 --no-deps)"
+# Make sure that the version number of all publishable workspace members matches.
+metadata="$(cargo metadata --format-version=1 --all-features --no-deps)"
 for id in $(jq <<<"${metadata}" '.workspace_members[]'); do
     pkg="$(jq <<<"${metadata}" ".packages[] | select(.id == ${id})")"
     publish=$(jq <<<"${pkg}" -r '.publish')
@@ -50,6 +50,10 @@ git diff --exit-code --staged
 echo "============== CHANGELOG =============="
 parse-changelog CHANGELOG.md "${version}"
 echo "======================================="
+
+if ! grep <CHANGELOG.md -E "^\\[${version//./\\.}\\]: " >/dev/null; then
+    bail "not found link to [${version}] in CHANGELOG.md"
+fi
 
 # Make sure the same release has not been created in the past.
 if gh release view "${tag}" &>/dev/null; then
