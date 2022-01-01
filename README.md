@@ -5,7 +5,7 @@
 [![rustc](https://img.shields.io/badge/rustc-1.51+-blue?style=flat-square&logo=rust)](https://www.rust-lang.org)
 [![build status](https://img.shields.io/github/workflow/status/taiki-e/cargo-minimal-versions/CI/main?style=flat-square&logo=github)](https://github.com/taiki-e/cargo-minimal-versions/actions)
 
-Wrapper for proper use of [`-Z minimal-versions`][cargo#5657].
+Cargo subcommand for proper use of [`-Z minimal-versions`][cargo#5657].
 
 - [Usage](#usage)
 - [Details](#details)
@@ -61,6 +61,8 @@ In addition, due to cargo's feature integration, it is not correct to run `cargo
 
 cargo-minimal-versions addresses most of these issues and makes it easy to run cargo commands with `-Z minimal-versions`.
 
+See [#1](https://github.com/taiki-e/cargo-minimal-versions/issues/1) for the remaining problem.
+
 ## Installation
 
 <!-- omit in toc -->
@@ -104,7 +106,24 @@ You can install cargo-minimal-versions using [Homebrew tap on macOS and Linux](h
 brew install taiki-e/tap/cargo-minimal-versions
 ```
 
+<!-- omit in toc -->
+### On GitHub Actions
+
+You can use [taiki-e/install-action](https://github.com/taiki-e/install-action) to install prebuilt binaries on Linux, macOS, and Windows.
+This makes the installation faster and may avoid the impact of [problems caused by upstream changes](https://github.com/tokio-rs/bytes/issues/506).
+
+```yaml
+- uses: taiki-e/install-action@cargo-hack
+- uses: taiki-e/install-action@cargo-minimal-versions
+```
+
+## Related Projects
+
+- [cargo-hack]: Cargo subcommand to provide various options useful for testing and continuous integration.
+- [cargo-llvm-cov]: Cargo subcommand to easily use LLVM source-based code coverage.
+
 [cargo-hack]: https://github.com/taiki-e/cargo-hack
+[cargo-llvm-cov]: https://github.com/taiki-e/cargo-llvm-cov
 [cargo#5657]: https://github.com/rust-lang/cargo/issues/5657
 
 ## License
