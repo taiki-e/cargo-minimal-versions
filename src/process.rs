@@ -1,9 +1,8 @@
 use std::{
     cell::Cell,
-    collections::BTreeMap,
     ffi::OsString,
     fmt,
-    path::{Path, PathBuf},
+    path::Path,
     process::{Command, ExitStatus, Output},
     str,
 };
@@ -30,12 +29,6 @@ pub(crate) struct ProcessBuilder {
     program: OsString,
     /// A list of arguments to pass to the program.
     args: Vec<OsString>,
-    /// The environment variables in the process's environment.
-    env: BTreeMap<String, Option<OsString>>,
-    /// The working directory where the process will execute.
-    current_dir: Option<PathBuf>,
-    /// `true` to include environment variables in display.
-    display_env_vars: Cell<bool>,
     /// `true` to include full program path in display.
     display_program_path: Cell<bool>,
 }
@@ -46,9 +39,6 @@ impl ProcessBuilder {
         Self {
             program: program.into(),
             args: Vec::new(),
-            env: BTreeMap::new(),
-            current_dir: None,
-            display_env_vars: Cell::new(term::verbose()),
             display_program_path: Cell::new(term::verbose()),
         }
     }
@@ -68,40 +58,9 @@ impl ProcessBuilder {
         self
     }
 
-    // /// Set a variable in the process's environment.
-    // pub(crate) fn env(&mut self, key: impl Into<String>, val: impl Into<OsString>) -> &mut Self {
-    //     self.env.insert(key.into(), Some(val.into()));
-    //     self
-    // }
-
-    // /// Remove a variable from the process's environment.
-    // pub(crate) fn env_remove(&mut self, key: impl Into<String>) -> &mut Self {
-    //     self.env.insert(key.into(), None);
-    //     self
-    // }
-
-    // /// Set the working directory where the process will execute.
-    // pub(crate) fn current_dir(&mut self, path: impl Into<PathBuf>) -> &mut Self {
-    //     self.current_dir = Some(path.into());
-    //     self
-    // }
-
-    /// Enables environment variables display.
-    pub(crate) fn display_env_vars(&mut self) -> &mut Self {
-        self.display_env_vars.set(true);
-        self
-    }
-
-    /// Enables full program path display.
-    pub(crate) fn display_program_path(&mut self) -> &mut Self {
-        self.display_program_path.set(true);
-        self
-    }
-
     /// Enables all display-related flags.
     fn display_all(&mut self) {
-        self.display_env_vars();
-        self.display_program_path();
+        self.display_program_path.set(true);
     }
 
     /// Executes a process, waiting for completion, and mapping non-zero exit
@@ -160,22 +119,6 @@ impl ProcessBuilder {
     fn build(&self) -> Command {
         let mut cmd = Command::new(&self.program);
         cmd.args(&self.args);
-
-        for (k, v) in &self.env {
-            match v {
-                Some(v) => {
-                    cmd.env(k, v);
-                }
-                None => {
-                    cmd.env_remove(k);
-                }
-            }
-        }
-
-        if let Some(path) = &self.current_dir {
-            cmd.current_dir(path);
-        }
-
         cmd
     }
 }
@@ -185,19 +128,6 @@ impl fmt::Display for ProcessBuilder {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if !f.alternate() {
             write!(f, "`")?;
-        }
-
-        if self.display_env_vars.get() {
-            for (key, val) in &self.env {
-                if let Some(val) = val {
-                    let val = escape(val.to_string_lossy());
-                    if cfg!(windows) {
-                        write!(f, "set {}={}&& ", key, val)?;
-                    } else {
-                        write!(f, "{}={} ", key, val)?;
-                    }
-                }
-            }
         }
 
         if self.display_program_path.get() {

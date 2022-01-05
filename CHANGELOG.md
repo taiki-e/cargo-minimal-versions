@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Respect `--manifest-path` option.
+
 ## [0.1.0] - 2021-12-28
 
 Initial release

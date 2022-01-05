@@ -10,6 +10,7 @@ Cargo subcommand for proper use of [`-Z minimal-versions`][cargo#5657].
 - [Usage](#usage)
 - [Details](#details)
 - [Installation](#installation)
+- [Related Projects](#related-projects)
 - [License](#license)
 
 ## Usage
@@ -22,7 +23,7 @@ Cargo subcommand for proper use of [`-Z minimal-versions`][cargo#5657].
 $ cargo minimal-versions --help
 cargo-minimal-versions
 
-Wrapper for proper use of -Z minimal-versions.
+Cargo subcommand for proper use of -Z minimal-versions.
 
 USAGE:
     cargo minimal-versions <SUBCOMMAND> [CARGO_OPTIONS]
@@ -98,15 +99,6 @@ You can download prebuilt binaries from the [Release page](https://github.com/ta
 Prebuilt binaries are available for macOS, Linux (gnu and musl), and Windows (static executable).
 
 <!-- omit in toc -->
-### Via Homebrew
-
-You can install cargo-minimal-versions using [Homebrew tap on macOS and Linux](https://github.com/taiki-e/homebrew-tap/blob/main/Formula/cargo-minimal-versions.rb):
-
-```sh
-brew install taiki-e/tap/cargo-minimal-versions
-```
-
-<!-- omit in toc -->
 ### On GitHub Actions
 
 You can use [taiki-e/install-action](https://github.com/taiki-e/install-action) to install prebuilt binaries on Linux, macOS, and Windows.
@@ -115,6 +107,15 @@ This makes the installation faster and may avoid the impact of [problems caused 
 ```yaml
 - uses: taiki-e/install-action@cargo-hack
 - uses: taiki-e/install-action@cargo-minimal-versions
+```
+
+<!-- omit in toc -->
+### Via Homebrew
+
+You can install cargo-minimal-versions using [Homebrew tap on macOS and Linux](https://github.com/taiki-e/homebrew-tap/blob/main/Formula/cargo-minimal-versions.rb):
+
+```sh
+brew install taiki-e/tap/cargo-minimal-versions
 ```
 
 ## Related Projects

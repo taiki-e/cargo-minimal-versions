@@ -24,7 +24,7 @@ impl Manager {
         let cloned = this.clone();
         ctrlc::set_handler(move || {
             cloned.restore(None);
-            if term::has_error() {
+            if term::error() {
                 std::process::exit(1)
             }
             std::process::exit(0)

@@ -4,28 +4,27 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use anyhow::{Context as _, Result};
+use anyhow::{format_err, Context as _, Result};
 use camino::{Utf8Path, Utf8PathBuf};
 
 use crate::process::ProcessBuilder;
 
-pub(crate) struct Context {
+pub(crate) struct Workspace {
+    pub(crate) metadata: cargo_metadata::Metadata,
     cargo: PathBuf,
     nightly: bool,
-    pub(crate) metadata: cargo_metadata::Metadata,
 }
 
-impl Context {
+impl Workspace {
     pub(crate) fn new(manifest_path: Option<&Utf8Path>) -> Result<Self> {
         let cargo = env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
-        let version = cmd!(&cargo, "--version").read()?;
-        let nightly = version.contains("nightly")
-            || version.contains("dev")
-            // Check if `rustc -Z help` succeeds, to support custom built toolchains
-            // with nightly features enabled.
-            || cmd!(rustc_path(&cargo), "-Z", "help").run_with_output().is_ok();
+        let rustc = rustc_path(&cargo);
+        let nightly = rustc_version(&rustc)?;
+
+        // Metadata
         let current_manifest_path = package_root(&cargo, manifest_path)?;
         let metadata = metadata(&cargo, &current_manifest_path)?;
+
         Ok(Self { cargo: cargo.into(), nightly, metadata })
     }
 
@@ -57,6 +56,18 @@ fn rustc_path(cargo: impl AsRef<Path>) -> PathBuf {
     }
 }
 
+fn rustc_version(rustc: &Path) -> Result<bool> {
+    let mut cmd = cmd!(rustc, "--version", "--verbose");
+    let verbose_version = cmd.read()?;
+    let version =
+        verbose_version.lines().find_map(|line| line.strip_prefix("release: ")).ok_or_else(
+            || format_err!("unexpected version output from `{}`: {}", cmd, verbose_version),
+        )?;
+    let channel = version.splitn(2, '-').nth(1).unwrap_or_default();
+    let nightly = channel == "nightly" || version == "dev";
+    Ok(nightly)
+}
+
 pub(crate) fn package_root(cargo: &OsStr, manifest_path: Option<&Utf8Path>) -> Result<Utf8PathBuf> {
     let package_root = if let Some(manifest_path) = manifest_path {
         manifest_path.to_owned()
@@ -79,33 +90,11 @@ pub(crate) fn metadata(
     let mut cmd = cmd!(
         cargo,
         "metadata",
-        "--format-version",
-        "1",
+        "--format-version=1",
         "--no-deps",
         "--manifest-path",
         manifest_path
     );
-    let json = match cmd.read() {
-        Ok(json) => json,
-        Err(e) => {
-            // Retry with stable cargo because if workspace member has
-            // a dependency that requires newer cargo features, `cargo metadata`
-            // with older cargo may fail.
-            cmd = cmd!(
-                "cargo",
-                "+stable",
-                "metadata",
-                "--format-version",
-                "1",
-                "--no-deps",
-                "--manifest-path",
-                manifest_path
-            );
-            match cmd.read() {
-                Ok(json) => json,
-                Err(_e) => return Err(e),
-            }
-        }
-    };
+    let json = cmd.read()?;
     serde_json::from_str(&json).with_context(|| format!("failed to parse output from {}", cmd))
 }

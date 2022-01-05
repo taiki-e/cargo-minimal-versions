@@ -13,54 +13,46 @@ mod term;
 #[macro_use]
 mod process;
 
+mod cargo;
 mod cli;
-mod context;
 mod remove_dev_deps;
 mod restore;
 
 use anyhow::Result;
 use fs_err as fs;
 
-use crate::{cli::Args, context::Context};
+use crate::{cargo::Workspace, cli::Args};
 
 fn main() {
     if let Err(e) = try_main() {
         error!("{:#}", e);
     }
-    if term::has_error() {
+    if term::error() {
         std::process::exit(1)
     }
 }
 
 fn try_main() -> Result<()> {
     let args = Args::parse()?;
-    // TODO: pass manifest path if --manifest-path option passed
-    let cx = &Context::new(None)?;
+    let ws = Workspace::new(args.manifest_path.as_deref())?;
 
     // Remove dev-dependencies from Cargo.toml to prevent the next `cargo update`
     // from determining minimal versions based on dev-dependencies.
     let remove_dev_deps = !matches!(&*args.subcommand, "test" | "t")
-        && !args.cargo_args.iter().any(|a| {
-            matches!(
-                &**a,
-                "--all-targets"
-                    | "--bench"
-                    | "--benches"
-                    | "--example"
-                    | "--examples"
-                    | "--test"
-                    | "--tests"
-            ) || a.starts_with("--bench=")
-                || a.starts_with("--example=")
-                || a.starts_with("--test=")
+        && !args.cargo_args.iter().any(|a| match &**a {
+            "--example" | "--examples" | "--test" | "--tests" | "--bench" | "--benches"
+            | "--all-targets" => true,
+            _ => {
+                a.starts_with("--example=") || a.starts_with("--test=") || a.starts_with("--bench=")
+            }
         });
     // TODO: provide option to keep updated Cargo.lock
     let restore_lockfile = true;
     let restore = restore::Manager::new();
-    let mut restore_handles = Vec::with_capacity(cx.metadata.workspace_members.len());
+    let mut restore_handles = Vec::with_capacity(ws.metadata.workspace_members.len());
     if remove_dev_deps {
-        for id in &cx.metadata.workspace_members {
-            let manifest_path = &cx.metadata[id].manifest_path;
+        for id in &ws.metadata.workspace_members {
+            let manifest_path = &ws.metadata[id].manifest_path;
             let orig = fs::read_to_string(manifest_path)?;
             let new = remove_dev_deps::remove_dev_deps(&orig);
             restore_handles.push(restore.push(orig, manifest_path.as_std_path()));
@@ -71,7 +63,7 @@ fn try_main() -> Result<()> {
         }
     }
     if restore_lockfile {
-        let lockfile = &cx.metadata.workspace_root.join("Cargo.lock");
+        let lockfile = &ws.metadata.workspace_root.join("Cargo.lock");
         if lockfile.exists() {
             restore_handles
                 .push(restore.push(fs::read_to_string(lockfile)?, lockfile.as_std_path()));
@@ -79,15 +71,14 @@ fn try_main() -> Result<()> {
     }
 
     // Update Cargo.lock to minimal version dependencies.
-    let mut cargo = cx.cargo_nightly();
+    let mut cargo = ws.cargo_nightly();
     cargo.args(&["update", "-Z", "minimal-versions"]);
     info!("running {}", cargo);
     cargo.run()?;
 
-    let mut cargo = cx.cargo();
+    let mut cargo = ws.cargo();
     // TODO: Provide a way to do this without using cargo-hack.
     cargo.arg("hack");
-    cargo.arg(args.subcommand);
     cargo.args(args.cargo_args);
     if !args.rest.is_empty() {
         cargo.arg("--");
