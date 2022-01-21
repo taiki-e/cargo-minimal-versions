@@ -129,7 +129,7 @@ impl Args {
         term::verbose::set(verbose != 0);
         // If `-vv` is passed, propagate `-v` to cargo.
         if verbose > 1 {
-            cargo_args.push(format!("-{}", "v".repeat(verbose - 1)))
+            cargo_args.push(format!("-{}", "v".repeat(verbose - 1)));
         }
         term::set_coloring(color)?;
         if let Some(color) = color {
