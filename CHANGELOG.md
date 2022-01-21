@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Distribute prebuilt binaries for aarch64 Linux (gnu and musl).
+
 ## [0.1.1] - 2022-01-05
 
 - Respect `--manifest-path` option.
