@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.2] - 2022-01-21
+
 - Distribute prebuilt binaries for aarch64 Linux (gnu and musl).
 
 ## [0.1.1] - 2022-01-05
@@ -20,6 +22,7 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.1...HEAD
-[0.1.1]: https://github.com/taiki-e/install-action/compare/v0.1.0...v0.1.1
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/taiki-e/cargo-minimal-versions/releases/tag/v0.1.0
