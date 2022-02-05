@@ -21,10 +21,37 @@ Cargo subcommand for proper use of -Z minimal-versions.
 ";
 
 pub(crate) struct Args {
-    pub(crate) subcommand: String,
+    pub(crate) subcommand: Subcommand,
     pub(crate) manifest_path: Option<Utf8PathBuf>,
     pub(crate) cargo_args: Vec<String>,
     pub(crate) rest: Vec<String>,
+}
+
+#[derive(PartialEq, Eq)]
+pub(crate) enum Subcommand {
+    // build, check, run
+    Builtin,
+    // test, bench
+    BuiltinDev,
+    Other,
+}
+
+impl Subcommand {
+    fn new(s: &str) -> Self {
+        // https://github.com/rust-lang/cargo/blob/3bc0e6d83f7f5da0161ce445f8864b0b639776a9/src/bin/cargo/main.rs#L50-L58
+        match s {
+            "b" | "build" | "c" | "check" | "r" | "run" => Self::Builtin,
+            "t" | "test" | "bench" => Self::BuiltinDev,
+            _ => {
+                warn!("unrecognized subcommand '{}'", s);
+                Self::Other
+            }
+        }
+    }
+
+    pub(crate) fn always_needs_dev_deps(&self) -> bool {
+        *self == Self::BuiltinDev
+    }
 }
 
 impl Args {
@@ -114,7 +141,7 @@ impl Args {
                 Value(val) => {
                     let val = val.parse::<String>()?;
                     if subcommand.is_none() {
-                        subcommand = Some(val.clone());
+                        subcommand = Some(Subcommand::new(&val));
                     }
                     cargo_args.push(val);
                 }
