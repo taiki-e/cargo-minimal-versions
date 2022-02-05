@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Warn when unrecognized subcommand is passed. ([#3](https://github.com/taiki-e/cargo-minimal-versions/pull/3))
+
 ## [0.1.2] - 2022-01-21
 
 - Distribute prebuilt binaries for aarch64 Linux (gnu and musl).

@@ -87,7 +87,7 @@ macro_rules! global_flag {
 }
 global_flag!(verbose: bool = AtomicBool::new(false));
 global_flag!(error: bool = AtomicBool::new(false));
-// global_flag!(warn: bool = AtomicBool::new(false));
+global_flag!(warn: bool = AtomicBool::new(false));
 
 pub(crate) fn print_status(status: &str, color: Option<Color>) -> StandardStream {
     let mut stream = StandardStream::stderr(coloring());
@@ -109,14 +109,14 @@ macro_rules! error {
     }};
 }
 
-// macro_rules! warn {
-//     ($($msg:expr),* $(,)?) => {{
-//         use std::io::Write;
-//         crate::term::warn::set(true);
-//         let mut stream = crate::term::print_status("warning", Some(termcolor::Color::Yellow));
-//         let _ = writeln!(stream, $($msg),*);
-//     }};
-// }
+macro_rules! warn {
+    ($($msg:expr),* $(,)?) => {{
+        use std::io::Write;
+        crate::term::warn::set(true);
+        let mut stream = crate::term::print_status("warning", Some(termcolor::Color::Yellow));
+        let _ = writeln!(stream, $($msg),*);
+    }};
+}
 
 macro_rules! info {
     ($($msg:expr),* $(,)?) => {{

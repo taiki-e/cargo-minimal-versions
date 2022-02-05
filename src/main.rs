@@ -13,6 +13,8 @@ mod cli;
 mod remove_dev_deps;
 mod restore;
 
+use std::env;
+
 use anyhow::Result;
 use fs_err as fs;
 
@@ -22,7 +24,10 @@ fn main() {
     if let Err(e) = try_main() {
         error!("{:#}", e);
     }
-    if term::error() {
+    if term::error()
+        || term::warn()
+            && env::var_os("CARGO_MINIMAL_VERSIONS_DENY_WARNINGS").filter(|v| v == "true").is_some()
+    {
         std::process::exit(1)
     }
 }
@@ -33,7 +38,7 @@ fn try_main() -> Result<()> {
 
     // Remove dev-dependencies from Cargo.toml to prevent the next `cargo update`
     // from determining minimal versions based on dev-dependencies.
-    let remove_dev_deps = !matches!(&*args.subcommand, "test" | "t")
+    let remove_dev_deps = !args.subcommand.always_needs_dev_deps()
         && !args.cargo_args.iter().any(|a| match &**a {
             "--example" | "--examples" | "--test" | "--tests" | "--bench" | "--benches"
             | "--all-targets" => true,
