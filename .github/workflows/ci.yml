@@ -78,7 +78,7 @@ jobs:
       - uses: taiki-e/install-action@cross
       - run: cross build --target ${{ matrix.target }}
 
-  build:
+  msrv:
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v3
@@ -115,7 +115,8 @@ jobs:
     if: github.event_name == 'push' && success()
     needs:
       - test
-      - build
+      - cross
+      - msrv
       - tidy
     runs-on: ubuntu-18.04
     steps:
