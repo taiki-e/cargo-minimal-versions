@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Distribute prebuilt binaries for aarch64 macOS. ([#7](https://github.com/taiki-e/cargo-minimal-versions/pull/7))
+
 ## [0.1.3] - 2022-02-05
 
 - Warn when unrecognized subcommand is passed. ([#3](https://github.com/taiki-e/cargo-minimal-versions/pull/3))
