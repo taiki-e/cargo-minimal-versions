@@ -6,22 +6,81 @@ cd "$(dirname "$0")"/..
 # Publish a new release.
 #
 # USAGE:
-#    ./tools/publish.sh
+#    ./tools/publish.sh <VERSION>
 #
-# NOTE:
+# Note:
 # - This script requires parse-changelog <https://github.com/taiki-e/parse-changelog>
 
+x() {
+    local cmd="$1"
+    shift
+    (
+        set -x
+        "${cmd}" "$@"
+    )
+}
 bail() {
     echo >&2 "error: $*"
     exit 1
 }
 
-if [[ $# -gt 0 ]]; then
-    bail "invalid argument '$1'"
+version="${1:?}"
+version="${version#v}"
+tag="v${version}"
+if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z\.-]+)?(\+[0-9A-Za-z\.-]+)?$ ]]; then
+    bail "invalid version format '${version}'"
+fi
+if [[ $# -gt 1 ]]; then
+    bail "invalid argument '$2'"
 fi
 
-# Make sure that the version number of all publishable workspace members matches.
+# Make sure there is no uncommitted change.
+git diff --exit-code
+git diff --exit-code --staged
+
+# Make sure the same release has not been created in the past.
+if gh release view "${tag}" &>/dev/null; then
+    bail "tag '${tag}' has already been created and pushed"
+fi
+
+if ! git branch | grep -q '\* main'; then
+    bail "current branch is not 'main'"
+fi
+
+tags=$(git --no-pager tag)
+if [[ -n "${tags}" ]]; then
+    # Make sure the same release does not exist in CHANGELOG.md.
+    release_date=$(date --utc '+%Y-%m-%d')
+    if grep -Eq "^## \\[${version//./\\.}\\] - ${release_date}$" CHANGELOG.md; then
+        bail "release ${version} already exist in CHANGELOG.md"
+    fi
+    if grep -Eq "^\\[${version//./\\.}\\]: " CHANGELOG.md; then
+        bail "link to ${version} already exist in CHANGELOG.md"
+    fi
+
+    # Update changelog.
+    remote_url=$(grep -E '^\[Unreleased\]: https://' CHANGELOG.md | sed 's/^\[Unreleased\]: //' | sed 's/\.\.\.HEAD$//')
+    before_tag=$(sed <<<"${remote_url}" 's/^.*\/compare\///')
+    remote_url=$(sed <<<"${remote_url}" 's/\/compare\/v.*$//')
+    sed -i "s/^## \\[Unreleased\\]/## [Unreleased]\\n\\n## [${version}] - ${release_date}/" CHANGELOG.md
+    sed -i "s#^\[Unreleased\]: https://.*#[Unreleased]: ${remote_url}/compare/v${version}...HEAD\\n[${version}]: ${remote_url}/compare/${before_tag}...v${version}#" CHANGELOG.md
+    if ! grep -Eq "^## \\[${version//./\\.}\\] - ${release_date}$" CHANGELOG.md; then
+        bail "failed to update CHANGELOG.md"
+    fi
+    if ! grep -Eq "^\\[${version//./\\.}\\]: " CHANGELOG.md; then
+        bail "failed to update CHANGELOG.md"
+    fi
+fi
+
+# Make sure that a valid release note for this version exists.
+# https://github.com/taiki-e/parse-changelog
+echo "============== CHANGELOG =============="
+parse-changelog CHANGELOG.md "${version}"
+echo "======================================="
+
 metadata="$(cargo metadata --format-version=1 --all-features --no-deps)"
+prev_version=''
+manifest_paths=()
 for id in $(jq <<<"${metadata}" '.workspace_members[]'); do
     pkg="$(jq <<<"${metadata}" ".packages[] | select(.id == ${id})")"
     publish=$(jq <<<"${pkg}" -r '.publish')
@@ -30,40 +89,27 @@ for id in $(jq <<<"${metadata}" '.workspace_members[]'); do
         continue
     fi
     actual_version=$(jq <<<"${pkg}" -r '.version')
-    if [[ -z "${version:-}" ]]; then
-        version="${actual_version}"
+    if [[ -z "${prev_version:-}" ]]; then
+        prev_version="${actual_version}"
     fi
-    if [[ "${actual_version}" != "${version}" ]]; then
+    # Make sure that the version number of all publishable workspace members matches.
+    if [[ "${actual_version}" != "${prev_version}" ]]; then
         name=$(jq <<<"${pkg}" -r '.name')
-        bail "publishable workspace members must be version '${version}', but package '${name}' is version '${actual_version}'"
+        bail "publishable workspace members must be version '${prev_version}', but package '${name}' is version '${actual_version}'"
     fi
+
+    # Update version.
+    manifest_path=$(jq <<<"${pkg}" -r '.manifest_path')
+    manifest_paths+=("${manifest_path}")
+    sed -i -e "s/version = \"${prev_version}\" #publish:version/version = \"${version}\" #publish:version/g" "${manifest_path}"
 done
-tag="v${version}"
 
-# Make sure there is no uncommitted change.
-git diff --exit-code
-git diff --exit-code --staged
-
-# Make sure that a valid release note for this version exists.
-# https://github.com/taiki-e/parse-changelog
-echo "============== CHANGELOG =============="
-parse-changelog CHANGELOG.md "${version}"
-echo "======================================="
-
-if ! grep <CHANGELOG.md -E "^## \\[${version//./\\.}\\] - $(date --utc '+%Y-%m-%d')$" >/dev/null; then
-    bail "not found section '[${version}] - $(date --utc '+%Y-%m-%d')' in CHANGELOG.md"
-fi
-if ! grep <CHANGELOG.md -E "^\\[${version//./\\.}\\]: " >/dev/null; then
-    bail "not found link to [${version}] in CHANGELOG.md"
+if [[ -n "${tags}" ]]; then
+    # Create a release commit.
+    x git add CHANGELOG.md "${manifest_paths[@]}"
+    x git commit -m "Release ${version}"
 fi
 
-# Make sure the same release has not been created in the past.
-if gh release view "${tag}" &>/dev/null; then
-    bail "tag '${tag}' has already been created and pushed"
-fi
-
-set -x
-
-git push origin main
-git tag "${tag}"
-git push origin --tags
+x git tag "${tag}"
+x git push origin main
+x git push origin --tags
