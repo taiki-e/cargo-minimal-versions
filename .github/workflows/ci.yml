@@ -41,7 +41,7 @@ jobs:
             os: windows-2019
     runs-on: ${{ matrix.os || 'ubuntu-18.04' }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           persist-credentials: false
       - uses: taiki-e/github-actions/install-rust@main
@@ -71,7 +71,7 @@ jobs:
           - target: x86_64-unknown-linux-musl
     runs-on: ${{ matrix.os || 'ubuntu-18.04' }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           persist-credentials: false
       - uses: taiki-e/github-actions/install-rust@main
@@ -81,7 +81,7 @@ jobs:
   build:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           persist-credentials: false
       - uses: taiki-e/install-action@cargo-hack
@@ -90,7 +90,7 @@ jobs:
   tidy:
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           persist-credentials: false
       - uses: taiki-e/github-actions/install-rust@main
