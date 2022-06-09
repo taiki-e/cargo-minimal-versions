@@ -10,12 +10,11 @@ mod process;
 
 mod cargo;
 mod cli;
-mod remove_dev_deps;
 mod restore;
 
 use std::env;
 
-use anyhow::Result;
+use anyhow::{Context as _, Result};
 use fs_err as fs;
 
 use crate::{cargo::Workspace, cli::Args};
@@ -54,12 +53,15 @@ fn try_main() -> Result<()> {
         for id in &ws.metadata.workspace_members {
             let manifest_path = &ws.metadata[id].manifest_path;
             let orig = fs::read_to_string(manifest_path)?;
-            let new = remove_dev_deps::remove_dev_deps(&orig);
+            let mut doc = orig
+                .parse()
+                .with_context(|| format!("failed to parse manifest `{}` as toml", manifest_path))?;
+            self::remove_dev_deps(&mut doc);
             restore_handles.push(restore.push(orig, manifest_path.as_std_path()));
             if term::verbose() {
                 info!("removing dev-dependencies from {}", manifest_path);
             }
-            fs::write(manifest_path, new)?;
+            fs::write(manifest_path, doc.to_string())?;
         }
     }
     if restore_lockfile {
@@ -91,4 +93,194 @@ fn try_main() -> Result<()> {
     drop(restore_handles);
 
     Ok(())
+}
+
+fn remove_dev_deps(doc: &mut toml_edit::Document) {
+    const KEY: &str = "dev-dependencies";
+    let table = doc.as_table_mut();
+    table.remove(KEY);
+    if let Some(table) = table.get_mut("target").and_then(toml_edit::Item::as_table_like_mut) {
+        for (_, val) in table.iter_mut() {
+            if let Some(table) = val.as_table_like_mut() {
+                table.remove(KEY);
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::remove_dev_deps;
+
+    macro_rules! test {
+        ($name:ident, $input:expr, $expected:expr) => {
+            #[test]
+            fn $name() {
+                let mut doc: toml_edit::Document = $input.parse().unwrap();
+                remove_dev_deps(&mut doc);
+                assert_eq!($expected, doc.to_string());
+            }
+        };
+    }
+
+    test!(
+        a,
+        "\
+[package]
+[dependencies]
+[[example]]
+[dev-dependencies.opencl]
+[dev-dependencies]",
+        "\
+[package]
+[dependencies]
+[[example]]
+"
+    );
+
+    test!(
+        b,
+        "\
+[package]
+[dependencies]
+[[example]]
+[dev-dependencies.opencl]
+[dev-dependencies]
+",
+        "\
+[package]
+[dependencies]
+[[example]]
+"
+    );
+
+    test!(
+        c,
+        "\
+[dev-dependencies]
+foo = { features = [] }
+bar = \"0.1\"
+",
+        "\
+         "
+    );
+
+    test!(
+        d,
+        "\
+[dev-dependencies.foo]
+features = []
+
+[dev-dependencies]
+bar = { features = [], a = [] }
+
+[dependencies]
+bar = { features = [], a = [] }
+",
+        "
+[dependencies]
+bar = { features = [], a = [] }
+"
+    );
+
+    test!(
+        many_lines,
+        "\
+[package]\n\n
+
+[dev-dependencies.opencl]
+
+
+[dev-dependencies]
+",
+        "\
+[package]
+"
+    );
+
+    test!(
+        target_deps1,
+        "\
+[package]
+
+[target.'cfg(unix)'.dev-dependencies]
+
+[dependencies]
+",
+        "\
+[package]
+
+[dependencies]
+"
+    );
+
+    test!(
+        target_deps2,
+        "\
+[package]
+
+[target.'cfg(unix)'.dev-dependencies]
+foo = \"0.1\"
+
+[target.'cfg(unix)'.dev-dependencies.bar]
+
+[dev-dependencies]
+foo = \"0.1\"
+
+[target.'cfg(unix)'.dependencies]
+foo = \"0.1\"
+",
+        "\
+[package]
+
+[target.'cfg(unix)'.dependencies]
+foo = \"0.1\"
+"
+    );
+
+    test!(
+        target_deps3,
+        "\
+[package]
+
+[target.'cfg(unix)'.dependencies]
+
+[dev-dependencies]
+",
+        "\
+[package]
+
+[target.'cfg(unix)'.dependencies]
+"
+    );
+
+    test!(
+        target_deps4,
+        "\
+[package]
+
+[target.'cfg(unix)'.dev-dependencies]
+",
+        "\
+[package]
+"
+    );
+
+    test!(
+        not_table_multi_line,
+        "\
+[package]
+foo = [
+    ['dev-dependencies'],
+    [\"dev-dependencies\"]
+]
+",
+        "\
+[package]
+foo = [
+    ['dev-dependencies'],
+    [\"dev-dependencies\"]
+]
+"
+    );
 }
