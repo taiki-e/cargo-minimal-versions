@@ -44,7 +44,7 @@ To check all crates with minimal version dependencies:
 cargo minimal-versions check --workspace
 ```
 
-**Note**: ([If cargo-minimal-versions determines that it is necessary to do so for a correct minimal versions check](#details),) cargo-minimal-versions modifies `Cargo.toml` and `Cargo.lock` while running and restores it when finished. Any changes you made to those files during running will not be preserved.
+**Note:** ([If cargo-minimal-versions determines that it is necessary to do so for a correct minimal versions check](#details),) cargo-minimal-versions modifies `Cargo.toml` and `Cargo.lock` while running and restores it when finished. Any changes you made to those files during running will not be preserved.
 
 Normally, crates with `publish = false` do not need minimal versions check. You can skip these crates by using `--ignore-private` flag.
 
@@ -78,13 +78,13 @@ See [#6](https://github.com/taiki-e/cargo-minimal-versions/issues/6) for the rem
 <!-- omit in toc -->
 ### Prerequisites
 
-cargo-minimal-versions requires nightly
-toolchain (to run `cargo update -Z minimal-versions`) and [cargo-hack] (to run `cargo check` & `cargo build` proper):
+cargo-minimal-versions requires [cargo-hack] (to run `cargo check` & `cargo build` proper):
 
 ```sh
-rustup toolchain add nightly
 cargo install cargo-hack
 ```
+
+cargo-minimal-versions also requires nightly toolchain (to run `cargo update -Z minimal-versions`), but this will be installed automatically if it is not already installed.
 
 <!-- omit in toc -->
 ### From source

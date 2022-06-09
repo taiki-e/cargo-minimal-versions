@@ -25,6 +25,7 @@ pub(crate) struct Args {
     pub(crate) manifest_path: Option<Utf8PathBuf>,
     pub(crate) workspace: bool,
     pub(crate) detach_path_deps: bool,
+    pub(crate) ignore_private: bool,
     pub(crate) cargo_args: Vec<String>,
     pub(crate) rest: Vec<String>,
 }
@@ -39,7 +40,7 @@ pub(crate) enum Subcommand {
 
 impl Subcommand {
     fn new(s: &str) -> Self {
-        // https://github.com/rust-lang/cargo/blob/3bc0e6d83f7f5da0161ce445f8864b0b639776a9/src/bin/cargo/main.rs#L50-L58
+        // https://github.com/rust-lang/cargo/blob/0.62.0/src/bin/cargo/main.rs#L48-L56
         match s {
             "b" | "build" | "c" | "check" | "r" | "run" => Self::Builtin(s.to_owned()),
             "t" | "test" | "bench" => Self::BuiltinDev(s.to_owned()),
@@ -66,7 +67,7 @@ impl Args {
         const SUBCMD: &str = "minimal-versions";
 
         // rustc/cargo args must be valid Unicode
-        // https://github.com/rust-lang/rust/blob/3bc9dd0dd293ab82945e35888ed6d7ab802761ef/compiler/rustc_driver/src/lib.rs#L1365-L1375
+        // https://github.com/rust-lang/rust/blob/1.61.0/compiler/rustc_driver/src/lib.rs#L1321-L1331
         fn handle_args(
             args: impl IntoIterator<Item = impl Into<OsString>>,
         ) -> impl Iterator<Item = Result<String>> {
@@ -100,6 +101,7 @@ impl Args {
         let mut manifest_path: Option<Utf8PathBuf> = None;
         let mut verbose = 0;
         let mut workspace = false;
+        let mut ignore_private = false;
         let mut detach_path_deps = false;
 
         let mut parser = lexopt::Parser::from_args(args);
@@ -126,6 +128,7 @@ impl Args {
                 Long("manifest-path") => parse_opt!(manifest_path),
                 Short('v') | Long("verbose") => verbose += 1,
                 Long("workspace") | Long("all") => workspace = true,
+                Long("ignore-private") => ignore_private = true,
                 Long("detach-path-deps") => parse_flag!(detach_path_deps),
 
                 // cargo-hack flags
@@ -192,7 +195,15 @@ impl Args {
             cargo_args.push(path.as_str().to_owned());
         }
 
-        Ok(Self { subcommand, manifest_path, workspace, detach_path_deps, cargo_args, rest })
+        Ok(Self {
+            subcommand,
+            manifest_path,
+            workspace,
+            ignore_private,
+            detach_path_deps,
+            cargo_args,
+            rest,
+        })
     }
 }
 

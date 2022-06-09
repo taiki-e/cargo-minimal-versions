@@ -1,4 +1,4 @@
-// Adapted from https://github.com/taiki-e/cargo-hack/blob/e44b71139c29a6c358d73d1fbd4f31c06bc0a901/src/restore.rs
+// Adapted from https://github.com/taiki-e/cargo-hack/blob/v0.5.7/src/restore.rs
 
 use std::{
     mem,
