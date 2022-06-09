@@ -2,7 +2,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/cargo-minimal-versions?style=flat-square&logo=rust)](https://crates.io/crates/cargo-minimal-versions)
 [![license](https://img.shields.io/badge/license-Apache--2.0_OR_MIT-blue?style=flat-square)](#license)
-[![rustc](https://img.shields.io/badge/rustc-1.51+-blue?style=flat-square&logo=rust)](https://www.rust-lang.org)
+[![rustc](https://img.shields.io/badge/rustc-1.59+-blue?style=flat-square&logo=rust)](https://www.rust-lang.org)
 [![build status](https://img.shields.io/github/workflow/status/taiki-e/cargo-minimal-versions/CI/main?style=flat-square&logo=github)](https://github.com/taiki-e/cargo-minimal-versions/actions)
 
 Cargo subcommand for proper use of [`-Z minimal-versions`][cargo#5657].
@@ -84,7 +84,7 @@ cargo install cargo-hack
 cargo install cargo-minimal-versions
 ```
 
-*Compiler support: requires rustc 1.51+*
+*Compiler support: requires rustc 1.59+*
 
 <!-- TODO: test
 cargo-minimal-versions is usually runnable with Cargo versions older than the Rust version
