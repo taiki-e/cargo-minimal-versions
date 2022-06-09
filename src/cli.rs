@@ -23,34 +23,40 @@ Cargo subcommand for proper use of -Z minimal-versions.
 pub(crate) struct Args {
     pub(crate) subcommand: Subcommand,
     pub(crate) manifest_path: Option<Utf8PathBuf>,
+    pub(crate) detach_path_deps: bool,
     pub(crate) cargo_args: Vec<String>,
     pub(crate) rest: Vec<String>,
 }
 
-#[derive(PartialEq, Eq)]
 pub(crate) enum Subcommand {
     // build, check, run
-    Builtin,
+    Builtin(String),
     // test, bench
-    BuiltinDev,
-    Other,
+    BuiltinDev(String),
+    Other(String),
 }
 
 impl Subcommand {
     fn new(s: &str) -> Self {
         // https://github.com/rust-lang/cargo/blob/3bc0e6d83f7f5da0161ce445f8864b0b639776a9/src/bin/cargo/main.rs#L50-L58
         match s {
-            "b" | "build" | "c" | "check" | "r" | "run" => Self::Builtin,
-            "t" | "test" | "bench" => Self::BuiltinDev,
+            "b" | "build" | "c" | "check" | "r" | "run" => Self::Builtin(s.to_owned()),
+            "t" | "test" | "bench" => Self::BuiltinDev(s.to_owned()),
             _ => {
                 warn!("unrecognized subcommand '{}'", s);
-                Self::Other
+                Self::Other(s.to_owned())
             }
         }
     }
 
     pub(crate) fn always_needs_dev_deps(&self) -> bool {
-        *self == Self::BuiltinDev
+        matches!(self, Self::BuiltinDev(..))
+    }
+
+    pub(crate) fn as_str(&self) -> &str {
+        match self {
+            Self::Builtin(s) | Self::BuiltinDev(s) | Self::Other(s) => s,
+        }
     }
 }
 
@@ -92,6 +98,7 @@ impl Args {
         let mut color = None;
         let mut manifest_path: Option<Utf8PathBuf> = None;
         let mut verbose = 0;
+        let mut detach_path_deps = false;
 
         let mut parser = lexopt::Parser::from_args(args);
         while let Some(arg) = parser.next()? {
@@ -103,11 +110,25 @@ impl Args {
                     $opt = Some(parser.value()?.parse()?);
                 }};
             }
+            macro_rules! parse_flag {
+                ($flag:ident $(,)?) => {{
+                    if $flag {
+                        multi_arg(&arg)?;
+                    }
+                    $flag = true;
+                }};
+            }
 
             match arg {
                 Long("color") => parse_opt!(color),
                 Long("manifest-path") => parse_opt!(manifest_path),
                 Short('v') | Long("verbose") => verbose += 1,
+                Long("detach-path-deps") => parse_flag!(detach_path_deps),
+
+                // cargo-hack flags
+                // However, do not propagate to cargo-hack, as the same process
+                // is done by cargo-minimal-versions.
+                Long("remove-dev-deps") | Long("no-dev-deps") => {} // TODO: warn
 
                 Short('h') | Long("help") if subcommand.is_none() => {
                     print!("{}", USAGE);
@@ -168,7 +189,7 @@ impl Args {
             cargo_args.push(path.as_str().to_owned());
         }
 
-        Ok(Self { subcommand, manifest_path, cargo_args, rest })
+        Ok(Self { subcommand, manifest_path, detach_path_deps, cargo_args, rest })
     }
 }
 

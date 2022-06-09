@@ -44,11 +44,21 @@ To check all crates with minimal version dependencies:
 cargo minimal-versions check --workspace
 ```
 
-Normally, crates with `publish = false` do not need minimal version check. You can skip these crates by using `--ignore-private` flag.
+Normally, crates with `publish = false` do not need minimal versions check. You can skip these crates by using `--ignore-private` flag.
 
 ```sh
 cargo minimal-versions check --workspace --ignore-private
 ```
+
+If path dependencies exist, the above ways may miss the problem when you publish the crate (e.g., [tokio-rs/tokio#4376], [tokio-rs/tokio#4490]) <br>
+By using `--detach-path-deps` flag, you can run minimal versions check with `path` fields removed from normal and build dependencies.
+
+```sh
+cargo minimal-versions check --workspace --ignore-private --detach-path-deps
+```
+
+[tokio-rs/tokio#4376]: https://github.com/tokio-rs/tokio/pull/4376
+[tokio-rs/tokio#4490]: https://github.com/tokio-rs/tokio/pull/4490
 
 ## Details
 
