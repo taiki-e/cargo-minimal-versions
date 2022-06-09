@@ -49,15 +49,25 @@ fn try_main() -> Result<()> {
     let restore_lockfile = true;
     let restore = restore::Manager::new();
     let mut restore_handles = Vec::with_capacity(ws.metadata.workspace_members.len());
-    if remove_dev_deps || restore_lockfile {
+    let detach_workspace = ws.metadata.workspace_members.len() > 1;
+    if remove_dev_deps || restore_lockfile || detach_workspace {
         info!(
             "cargo-minimal-versions modifies {} while running and restores it when finished; \
              note that any changes you made to {} during running will not be preserved",
-            if remove_dev_deps { "`Cargo.toml` and `Cargo.lock`" } else { "`Cargo.lock`" },
-            if restore_lockfile { "those files" } else { "`Cargo.toml`" }
+            if remove_dev_deps || detach_workspace {
+                "`Cargo.toml` and `Cargo.lock`"
+            } else {
+                "`Cargo.lock`"
+            },
+            if restore_lockfile || detach_workspace { "those files" } else { "`Cargo.toml`" }
         );
     }
     if remove_dev_deps {
+        let mut root_manifest = if detach_workspace {
+            Some(ws.metadata.workspace_root.join("Cargo.toml"))
+        } else {
+            None
+        };
         for id in &ws.metadata.workspace_members {
             let manifest_path = &ws.metadata[id].manifest_path;
             let orig = fs::read_to_string(manifest_path)?;
@@ -68,6 +78,23 @@ fn try_main() -> Result<()> {
             if args.detach_path_deps {
                 detach_path_deps(&mut doc);
             }
+            if root_manifest.as_ref() == Some(manifest_path) {
+                root_manifest = None;
+                detach_workspace_members(&mut doc);
+            } else if detach_workspace {
+                to_workspace(&mut doc);
+                // TODO: remove Cargo.lock
+            }
+            restore_handles.push(restore.push(orig, manifest_path.as_std_path()));
+            if term::verbose() {
+                info!("modifying {}", manifest_path);
+            }
+            fs::write(manifest_path, doc.to_string())?;
+        }
+        if let Some(manifest_path) = &root_manifest {
+            let orig = fs::read_to_string(manifest_path)?;
+            let mut doc = orig.parse()?;
+            detach_workspace_members(&mut doc);
             restore_handles.push(restore.push(orig, manifest_path.as_std_path()));
             if term::verbose() {
                 info!("modifying {}", manifest_path);
@@ -82,25 +109,52 @@ fn try_main() -> Result<()> {
         if lockfile.exists() {
             restore_handles
                 .push(restore.push(fs::read_to_string(lockfile)?, lockfile.as_std_path()));
+        } else {
+            // remove_handles.push()
         }
     }
 
     // Update Cargo.lock to minimal version dependencies.
     let mut cargo = ws.cargo_nightly();
     cargo.args(&["update", "-Z", "minimal-versions"]);
-    info!("running {}", cargo);
-    cargo.run()?;
+    if detach_workspace {
+        // TODO: respect --package/--exclude options
+        // TODO: ignore private crate when --ignore-private flag passed
+        for id in &ws.metadata.workspace_members {
+            let manifest_dir = ws.metadata[id].manifest_path.parent().unwrap();
+            cargo.dir(manifest_dir);
+            info!("running {} on {}", cargo, manifest_dir);
+            cargo.run()?;
+        }
+    } else {
+        info!("running {}", cargo);
+        cargo.run()?;
+    }
 
     let mut cargo = ws.cargo();
     // TODO: Provide a way to do this without using cargo-hack.
     cargo.arg("hack");
     cargo.args(args.cargo_args);
+    if !detach_workspace && args.workspace {
+        cargo.arg("--workspace");
+    }
     if !args.rest.is_empty() {
         cargo.arg("--");
         cargo.args(args.rest);
     }
-    info!("running {}", cargo);
-    cargo.run()?;
+    if detach_workspace {
+        // TODO: respect --package/--exclude options
+        // TODO: ignore private crate when --ignore-private flag passed
+        for id in &ws.metadata.workspace_members {
+            let manifest_dir = ws.metadata[id].manifest_path.parent().unwrap();
+            cargo.dir(manifest_dir);
+            info!("running {} on {}", cargo, manifest_dir);
+            cargo.run()?;
+        }
+    } else {
+        info!("running {}", cargo);
+        cargo.run()?;
+    }
 
     // Restore original Cargo.toml and Cargo.lock.
     drop(restore_handles);
@@ -119,6 +173,18 @@ fn remove_dev_deps(doc: &mut toml_edit::Document) {
             }
         }
     }
+}
+
+fn detach_workspace_members(doc: &mut toml_edit::Document) {
+    let table = doc.as_table_mut();
+    if let Some(table) = table.get_mut("workspace").and_then(toml_edit::Item::as_table_like_mut) {
+        table.remove("members");
+    }
+}
+
+fn to_workspace(doc: &mut toml_edit::Document) {
+    let table = doc.as_table_mut();
+    table.entry("workspace").or_insert_with(|| toml_edit::Item::Table(toml_edit::Table::default()));
 }
 
 fn detach_path_deps(doc: &mut toml_edit::Document) {

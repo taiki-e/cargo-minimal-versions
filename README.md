@@ -44,6 +44,8 @@ To check all crates with minimal version dependencies:
 cargo minimal-versions check --workspace
 ```
 
+**Note**: ([If cargo-minimal-versions determines that it is necessary to do so for a correct minimal versions check](#details),) cargo-minimal-versions modifies `Cargo.toml` and `Cargo.lock` while running and restores it when finished. Any changes you made to those files during running will not be preserved.
+
 Normally, crates with `publish = false` do not need minimal versions check. You can skip these crates by using `--ignore-private` flag.
 
 ```sh
@@ -57,9 +59,6 @@ By using `--detach-path-deps` flag, you can run minimal versions check with `pat
 cargo minimal-versions check --workspace --ignore-private --detach-path-deps
 ```
 
-[tokio-rs/tokio#4376]: https://github.com/tokio-rs/tokio/pull/4376
-[tokio-rs/tokio#4490]: https://github.com/tokio-rs/tokio/pull/4490
-
 ## Details
 
 Using `-Z minimal-versions` in the usual way will not work properly in many cases. [To use `cargo check` with `-Z minimal-versions` properly, you need to run at least three processes.](https://github.com/tokio-rs/tokio/pull/3131#discussion_r521621961)
@@ -70,9 +69,9 @@ Using `-Z minimal-versions` in the usual way will not work properly in many case
 
 In addition, due to cargo's feature integration, it is not correct to run `cargo check` or `cargo build` with `-p` (`--package`) or `--workspace` (`--all`) or on virtual manifest. To handle this problem correctly, you need the workspace handling provided by subcommands such as [`cargo hack`][cargo-hack].
 
-cargo-minimal-versions addresses most of these issues and makes it easy to run cargo commands with `-Z minimal-versions`.
+cargo-minimal-versions addresses most of known issues (includes the workspace issue mentioned in the above comment as "no workaround") and makes it easy to run cargo commands with `-Z minimal-versions`.
 
-See [#1](https://github.com/taiki-e/cargo-minimal-versions/issues/1) for the remaining problem.
+See [#6](https://github.com/taiki-e/cargo-minimal-versions/issues/6) for the remaining problem.
 
 ## Installation
 
@@ -122,7 +121,7 @@ This makes the installation faster and may avoid the impact of [problems caused 
 <!-- omit in toc -->
 ### Via Homebrew
 
-You can install [cargo-minimal-versions using Homebrew tap on macOS and Linux](https://github.com/taiki-e/homebrew-tap/blob/main/Formula/cargo-minimal-versions.rb):
+You can install [cargo-minimal-versions using Homebrew tap on macOS and Linux](https://github.com/taiki-e/homebrew-tap/blob/HEAD/Formula/cargo-minimal-versions.rb):
 
 ```sh
 brew install taiki-e/tap/cargo-minimal-versions
@@ -155,6 +154,8 @@ cargo binstall cargo-minimal-versions
 [cargo-hack]: https://github.com/taiki-e/cargo-hack
 [cargo-llvm-cov]: https://github.com/taiki-e/cargo-llvm-cov
 [cargo#5657]: https://github.com/rust-lang/cargo/issues/5657
+[tokio-rs/tokio#4376]: https://github.com/tokio-rs/tokio/pull/4376
+[tokio-rs/tokio#4490]: https://github.com/tokio-rs/tokio/pull/4490
 
 ## License
 

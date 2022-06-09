@@ -2,7 +2,7 @@ use std::{
     cell::Cell,
     ffi::OsString,
     fmt,
-    path::Path,
+    path::{Path, PathBuf},
     process::{Command, ExitStatus, Output},
     str,
 };
@@ -29,6 +29,7 @@ pub(crate) struct ProcessBuilder {
     program: OsString,
     /// A list of arguments to pass to the program.
     args: Vec<OsString>,
+    dir: Option<PathBuf>,
     /// `true` to include full program path in display.
     display_program_path: Cell<bool>,
 }
@@ -39,6 +40,7 @@ impl ProcessBuilder {
         Self {
             program: program.into(),
             args: Vec::new(),
+            dir: None,
             display_program_path: Cell::new(term::verbose()),
         }
     }
@@ -55,6 +57,11 @@ impl ProcessBuilder {
         args: impl IntoIterator<Item = impl Into<OsString>>,
     ) -> &mut Self {
         self.args.extend(args.into_iter().map(Into::into));
+        self
+    }
+
+    pub(crate) fn dir(&mut self, dir: impl AsRef<Path>) -> &mut Self {
+        self.dir = Some(dir.as_ref().to_owned());
         self
     }
 
@@ -119,6 +126,9 @@ impl ProcessBuilder {
     fn build(&self) -> Command {
         let mut cmd = Command::new(&self.program);
         cmd.args(&self.args);
+        if let Some(dir) = &self.dir {
+            cmd.current_dir(dir);
+        }
         cmd
     }
 }

@@ -23,6 +23,7 @@ Cargo subcommand for proper use of -Z minimal-versions.
 pub(crate) struct Args {
     pub(crate) subcommand: Subcommand,
     pub(crate) manifest_path: Option<Utf8PathBuf>,
+    pub(crate) workspace: bool,
     pub(crate) detach_path_deps: bool,
     pub(crate) cargo_args: Vec<String>,
     pub(crate) rest: Vec<String>,
@@ -98,6 +99,7 @@ impl Args {
         let mut color = None;
         let mut manifest_path: Option<Utf8PathBuf> = None;
         let mut verbose = 0;
+        let mut workspace = false;
         let mut detach_path_deps = false;
 
         let mut parser = lexopt::Parser::from_args(args);
@@ -123,6 +125,7 @@ impl Args {
                 Long("color") => parse_opt!(color),
                 Long("manifest-path") => parse_opt!(manifest_path),
                 Short('v') | Long("verbose") => verbose += 1,
+                Long("workspace") | Long("all") => workspace = true,
                 Long("detach-path-deps") => parse_flag!(detach_path_deps),
 
                 // cargo-hack flags
@@ -189,7 +192,7 @@ impl Args {
             cargo_args.push(path.as_str().to_owned());
         }
 
-        Ok(Self { subcommand, manifest_path, detach_path_deps, cargo_args, rest })
+        Ok(Self { subcommand, manifest_path, workspace, detach_path_deps, cargo_args, rest })
     }
 }
 

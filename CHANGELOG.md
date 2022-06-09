@@ -12,6 +12,10 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 - Add `--detach-path-deps` flag to run minimal versions check with `path` fields removed from normal and build dependencies. ([#4](https://github.com/taiki-e/cargo-minimal-versions/pull/4))
 
+- Fix an issue with minimal versions check not working properly due to `Cargo.lock` is shared within the workspace. ([#4](https://github.com/taiki-e/cargo-minimal-versions/pull/4))
+
+  This can cause subtle regressions, so this release is considered breaking.
+
 ## [0.1.5] - 2022-07-08
 
 - Add metadata for cargo binstall.
