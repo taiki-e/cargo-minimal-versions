@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Add metadata for cargo binstall.
+
 ## [0.1.4] - 2022-06-02
 
 - Distribute prebuilt binaries for aarch64 macOS. ([#7](https://github.com/taiki-e/cargo-minimal-versions/pull/7))
