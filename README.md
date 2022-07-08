@@ -112,10 +112,29 @@ This makes the installation faster and may avoid the impact of [problems caused 
 <!-- omit in toc -->
 ### Via Homebrew
 
-You can install cargo-minimal-versions using [Homebrew tap on macOS and Linux](https://github.com/taiki-e/homebrew-tap/blob/main/Formula/cargo-minimal-versions.rb):
+You can install [cargo-minimal-versions using Homebrew tap on macOS and Linux](https://github.com/taiki-e/homebrew-tap/blob/main/Formula/cargo-minimal-versions.rb):
 
 ```sh
 brew install taiki-e/tap/cargo-minimal-versions
+```
+
+<!-- omit in toc -->
+### Via Scoop (Windows)
+
+You can install [cargo-minimal-versions using Scoop](https://github.com/taiki-e/scoop-bucket/blob/HEAD/bucket/cargo-minimal-versions.json):
+
+```sh
+scoop bucket add taiki-e https://github.com/taiki-e/scoop-bucket
+scoop install cargo-minimal-versions
+```
+
+<!-- omit in toc -->
+### Via cargo-binstall
+
+You can install cargo-minimal-versions using [cargo-binstall](https://github.com/ryankurte/cargo-binstall):
+
+```sh
+cargo binstall cargo-minimal-versions
 ```
 
 ## Related Projects
