@@ -38,7 +38,7 @@ pub(crate) enum Subcommand {
 
 impl Subcommand {
     fn new(s: &str) -> Self {
-        // https://github.com/rust-lang/cargo/blob/3bc0e6d83f7f5da0161ce445f8864b0b639776a9/src/bin/cargo/main.rs#L50-L58
+        // https://github.com/rust-lang/cargo/blob/0.62.0/src/bin/cargo/main.rs#L48-L56
         match s {
             "b" | "build" | "c" | "check" | "r" | "run" => Self::Builtin,
             "t" | "test" | "bench" => Self::BuiltinDev,
@@ -59,7 +59,7 @@ impl Args {
         const SUBCMD: &str = "minimal-versions";
 
         // rustc/cargo args must be valid Unicode
-        // https://github.com/rust-lang/rust/blob/3bc9dd0dd293ab82945e35888ed6d7ab802761ef/compiler/rustc_driver/src/lib.rs#L1365-L1375
+        // https://github.com/rust-lang/rust/blob/1.62.0/compiler/rustc_driver/src/lib.rs#L1325-L1335
         fn handle_args(
             args: impl IntoIterator<Item = impl Into<OsString>>,
         ) -> impl Iterator<Item = Result<String>> {
