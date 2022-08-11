@@ -59,7 +59,7 @@ impl Args {
         const SUBCMD: &str = "minimal-versions";
 
         // rustc/cargo args must be valid Unicode
-        // https://github.com/rust-lang/rust/blob/1.62.0/compiler/rustc_driver/src/lib.rs#L1325-L1335
+        // https://github.com/rust-lang/rust/blob/1.63.0/compiler/rustc_driver/src/lib.rs#L1317-L1327
         fn handle_args(
             args: impl IntoIterator<Item = impl Into<OsString>>,
         ) -> impl Iterator<Item = Result<String>> {
