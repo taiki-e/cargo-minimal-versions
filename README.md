@@ -81,7 +81,7 @@ cargo install cargo-hack
 ### From source
 
 ```sh
-cargo install cargo-minimal-versions
+cargo +stable install cargo-minimal-versions
 ```
 
 *Compiler support: requires rustc 1.56+*
@@ -97,6 +97,18 @@ cargo-minimal-versions requires Cargo 1.26+.
 
 You can download prebuilt binaries from the [Release page](https://github.com/taiki-e/cargo-minimal-versions/releases).
 Prebuilt binaries are available for macOS, Linux (gnu and musl), and Windows (static executable).
+
+<details>
+<summary>Example of script to download cargo-minimal-versions</summary>
+
+```sh
+# Get host target
+host=$(rustc -Vv | grep host | sed 's/host: //')
+# Download binary and install to $HOME/.cargo/bin
+curl -LsSf https://github.com/taiki-e/cargo-minimal-versions/releases/latest/download/cargo-minimal-versions-$host.tar.gz | tar xzf - -C $HOME/.cargo/bin
+```
+
+</details>
 
 <!-- omit in toc -->
 ### On GitHub Actions
