@@ -74,7 +74,7 @@ fn try_main() -> Result<()> {
 
     // Update Cargo.lock to minimal version dependencies.
     let mut cargo = ws.cargo_nightly();
-    cargo.args(&["update", "-Z", "minimal-versions"]);
+    cargo.args(["update", "-Z", "minimal-versions"]);
     info!("running {}", cargo);
     cargo.run()?;
 
