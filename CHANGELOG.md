@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.6] - 2022-10-25
+
 - Update `toml_edit` to 0.15.
 
   This increases the rustc version required to build cargo-minimal-versions. (rustc 1.56+ -> 1.60+)
@@ -41,7 +43,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.2...v0.1.3
