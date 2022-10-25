@@ -36,7 +36,8 @@ impl Workspace {
         if self.nightly {
             self.cargo()
         } else {
-            cmd!("cargo", "+nightly")
+            // Do not use `cargo +nightly` due to a rustup bug: https://github.com/rust-lang/rustup/issues/3036
+            cmd!("rustup", "run", "nightly", "cargo")
         }
     }
 }
