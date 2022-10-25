@@ -10,6 +10,11 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Update `toml_edit` to 0.15.
+
+  This increases the rustc version required to build cargo-minimal-versions. (rustc 1.56+ -> 1.60+)
+  The cargo/rustc version required to run cargo-minimal-versions remains unchanged.
+
 ## [0.1.5] - 2022-07-08
 
 - Add metadata for cargo binstall.
