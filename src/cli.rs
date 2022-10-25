@@ -180,6 +180,8 @@ fn format_flag(flag: &lexopt::Arg<'_>) -> String {
     }
 }
 
+#[cold]
+#[inline(never)]
 fn multi_arg(flag: &lexopt::Arg<'_>) -> Result<()> {
     let flag = &format_flag(flag);
     bail!("argument '{}' was provided more than once, but cannot be used multiple times", flag,)
