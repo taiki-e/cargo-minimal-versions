@@ -21,7 +21,7 @@ use crate::{cargo::Workspace, cli::Args};
 
 fn main() {
     if let Err(e) = try_main() {
-        error!("{:#}", e);
+        error!("{e:#}");
     }
     if term::error()
         || term::warn()
@@ -55,11 +55,11 @@ fn try_main() -> Result<()> {
             let orig = fs::read_to_string(manifest_path)?;
             let mut doc = orig
                 .parse()
-                .with_context(|| format!("failed to parse manifest `{}` as toml", manifest_path))?;
+                .with_context(|| format!("failed to parse manifest `{manifest_path}` as toml"))?;
             self::remove_dev_deps(&mut doc);
             restore_handles.push(restore.push(orig, manifest_path.as_std_path()));
             if term::verbose() {
-                info!("removing dev-dependencies from {}", manifest_path);
+                info!("removing dev-dependencies from {manifest_path}");
             }
             fs::write(manifest_path, doc.to_string())?;
         }
@@ -75,7 +75,7 @@ fn try_main() -> Result<()> {
     // Update Cargo.lock to minimal version dependencies.
     let mut cargo = ws.cargo_nightly();
     cargo.args(["update", "-Z", "minimal-versions"]);
-    info!("running {}", cargo);
+    info!("running {cargo}");
     cargo.run()?;
 
     let mut cargo = ws.cargo();
@@ -86,7 +86,7 @@ fn try_main() -> Result<()> {
         cargo.arg("--");
         cargo.args(args.rest);
     }
-    info!("running {}", cargo);
+    info!("running {cargo}");
     cargo.run()?;
 
     // Restore original Cargo.toml and Cargo.lock.

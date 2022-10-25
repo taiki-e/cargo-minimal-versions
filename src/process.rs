@@ -68,14 +68,14 @@ impl ProcessBuilder {
     pub(crate) fn run(&mut self) -> Result<()> {
         let status = self.build().status().with_context(|| {
             self.display_all();
-            ProcessError::new(&format!("could not execute process {}", self), None, None)
+            ProcessError::new(&format!("could not execute process {self}"), None, None)
         })?;
         if status.success() {
             Ok(())
         } else {
             self.display_all();
             Err(ProcessError::new(
-                &format!("process didn't exit successfully: {}", self),
+                &format!("process didn't exit successfully: {self}"),
                 Some(status),
                 None,
             )
@@ -88,14 +88,14 @@ impl ProcessBuilder {
     pub(crate) fn run_with_output(&mut self) -> Result<Output> {
         let output = self.build().output().with_context(|| {
             self.display_all();
-            ProcessError::new(&format!("could not execute process {}", self), None, None)
+            ProcessError::new(&format!("could not execute process {self}"), None, None)
         })?;
         if output.status.success() {
             Ok(output)
         } else {
             self.display_all();
             Err(ProcessError::new(
-                &format!("process didn't exit successfully: {}", self),
+                &format!("process didn't exit successfully: {self}"),
                 Some(output.status),
                 Some(&output),
             )
@@ -108,7 +108,7 @@ impl ProcessBuilder {
     pub(crate) fn read(&mut self) -> Result<String> {
         let mut output = String::from_utf8(self.run_with_output()?.stdout).with_context(|| {
             self.display_all();
-            format!("failed to parse output from {}", self)
+            format!("failed to parse output from {self}")
         })?;
         while output.ends_with('\n') || output.ends_with('\r') {
             output.pop();
@@ -165,7 +165,7 @@ impl ProcessError {
             Some(s) => s.to_string(),
             None => "never executed".to_string(),
         };
-        let mut desc = format!("{} ({})", &msg, exit);
+        let mut desc = format!("{} ({exit})", &msg);
 
         if let Some(out) = output {
             match str::from_utf8(&out.stdout) {

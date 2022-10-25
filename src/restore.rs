@@ -71,7 +71,7 @@ impl File {
             info!("restoring {}", self.path.display());
         }
         if let Err(e) = fs::write(&self.path, &self.text) {
-            error!("{:#}", e);
+            error!("{e:#}");
         }
     }
 }

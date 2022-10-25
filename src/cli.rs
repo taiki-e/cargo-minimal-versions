@@ -43,7 +43,7 @@ impl Subcommand {
             "b" | "build" | "c" | "check" | "r" | "run" => Self::Builtin,
             "t" | "test" | "bench" => Self::BuiltinDev,
             _ => {
-                warn!("unrecognized subcommand '{}'", s);
+                warn!("unrecognized subcommand '{s}'");
                 Self::Other
             }
         }
@@ -64,9 +64,9 @@ impl Args {
             args: impl IntoIterator<Item = impl Into<OsString>>,
         ) -> impl Iterator<Item = Result<String>> {
             args.into_iter().enumerate().map(|(i, arg)| {
-                arg.into().into_string().map_err(|arg| {
-                    format_err!("argument {} is not valid Unicode: {:?}", i + 1, arg)
-                })
+                arg.into()
+                    .into_string()
+                    .map_err(|arg| format_err!("argument {} is not valid Unicode: {arg:?}", i + 1))
             })
         }
 
@@ -74,8 +74,8 @@ impl Args {
         raw_args.next(); // cargo
         match raw_args.next().transpose()? {
             Some(a) if a == SUBCMD => {}
-            Some(a) => bail!("expected subcommand '{}', found argument '{}'", SUBCMD, a),
-            None => bail!("expected subcommand '{}'", SUBCMD),
+            Some(a) => bail!("expected subcommand '{SUBCMD}', found argument '{a}'"),
+            None => bail!("expected subcommand '{SUBCMD}'"),
         }
         let mut args = vec![];
         for arg in &mut raw_args {
@@ -110,7 +110,7 @@ impl Args {
                 Short('v') | Long("verbose") => verbose += 1,
 
                 Short('h') | Long("help") if subcommand.is_none() => {
-                    print!("{}", USAGE);
+                    print!("{USAGE}");
                     std::process::exit(0);
                 }
                 Short('V') | Long("version") if subcommand.is_none() => {
@@ -120,9 +120,9 @@ impl Args {
 
                 // passthrough
                 Long(flag) => {
-                    let flag = format!("--{}", flag);
+                    let flag = format!("--{flag}");
                     if let Some(val) = parser.optional_value() {
-                        cargo_args.push(format!("{}={}", flag, val.parse::<String>()?));
+                        cargo_args.push(format!("{flag}={}", val.parse::<String>()?));
                     } else {
                         cargo_args.push(flag);
                     }
@@ -131,11 +131,11 @@ impl Args {
                     if matches!(flag, 'q' | 'r') {
                         // To handle combined short flags properly, handle known
                         // short flags without value as special cases.
-                        cargo_args.push(format!("-{}", flag));
+                        cargo_args.push(format!("-{flag}"));
                     } else if let Some(val) = parser.optional_value() {
-                        cargo_args.push(format!("-{}{}", flag, val.parse::<String>()?));
+                        cargo_args.push(format!("-{flag}{}", val.parse::<String>()?));
                     } else {
-                        cargo_args.push(format!("-{}", flag));
+                        cargo_args.push(format!("-{flag}"));
                     }
                 }
                 Value(val) => {
@@ -174,8 +174,8 @@ impl Args {
 
 fn format_flag(flag: &lexopt::Arg<'_>) -> String {
     match flag {
-        Long(flag) => format!("--{}", flag),
-        Short(flag) => format!("-{}", flag),
+        Long(flag) => format!("--{flag}"),
+        Short(flag) => format!("-{flag}"),
         Value(_) => unreachable!(),
     }
 }
@@ -184,7 +184,7 @@ fn format_flag(flag: &lexopt::Arg<'_>) -> String {
 #[inline(never)]
 fn multi_arg(flag: &lexopt::Arg<'_>) -> Result<()> {
     let flag = &format_flag(flag);
-    bail!("argument '{}' was provided more than once, but cannot be used multiple times", flag,)
+    bail!("argument '{flag}' was provided more than once, but cannot be used multiple times")
 }
 
 #[cfg(test)]

@@ -38,7 +38,7 @@ impl FromStr for Coloring {
             "auto" => Ok(Self::Auto),
             "always" => Ok(Self::Always),
             "never" => Ok(Self::Never),
-            other => bail!("must be auto, always, or never, but found `{}`", other),
+            other => bail!("must be auto, always, or never, but found `{other}`"),
         }
     }
 }
@@ -49,10 +49,9 @@ pub(crate) fn set_coloring(color: Option<Coloring>) -> Result<()> {
         Some(color) => color,
         // https://doc.rust-lang.org/nightly/cargo/reference/config.html#termcolor
         None => match env::var_os("CARGO_TERM_COLOR") {
-            Some(color) => color
-                .to_string_lossy()
-                .parse()
-                .map_err(|e| format_err!("CARGO_TERM_COLOR {}", e))?,
+            Some(color) => {
+                color.to_string_lossy().parse().map_err(|e| format_err!("CARGO_TERM_COLOR {e}"))?
+            }
             None => Coloring::Auto,
         },
     };
@@ -93,7 +92,7 @@ global_flag!(warn: bool = AtomicBool::new(false));
 pub(crate) fn print_status(status: &str, color: Option<Color>) -> StandardStream {
     let mut stream = StandardStream::stderr(coloring());
     let _ = stream.set_color(ColorSpec::new().set_bold(true).set_fg(color));
-    let _ = write!(stream, "{}", status);
+    let _ = write!(stream, "{status}");
     let _ = stream.set_color(ColorSpec::new().set_bold(true));
     let _ = write!(stream, ":");
     let _ = stream.reset();

@@ -59,10 +59,10 @@ fn rustc_path(cargo: impl AsRef<Path>) -> PathBuf {
 fn rustc_version(rustc: &Path) -> Result<bool> {
     let mut cmd = cmd!(rustc, "--version", "--verbose");
     let verbose_version = cmd.read()?;
-    let version =
-        verbose_version.lines().find_map(|line| line.strip_prefix("release: ")).ok_or_else(
-            || format_err!("unexpected version output from `{}`: {}", cmd, verbose_version),
-        )?;
+    let version = verbose_version
+        .lines()
+        .find_map(|line| line.strip_prefix("release: "))
+        .ok_or_else(|| format_err!("unexpected version output from `{cmd}`: {verbose_version}"))?;
     let channel = version.split_once('-').map(|x| x.1).unwrap_or_default();
     let nightly = channel == "nightly" || version == "dev";
     Ok(nightly)
@@ -96,5 +96,5 @@ pub(crate) fn metadata(
         manifest_path
     );
     let json = cmd.read()?;
-    serde_json::from_str(&json).with_context(|| format!("failed to parse output from {}", cmd))
+    serde_json::from_str(&json).with_context(|| format!("failed to parse output from {cmd}"))
 }
