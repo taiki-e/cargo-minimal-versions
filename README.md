@@ -74,7 +74,7 @@ toolchain (to run `cargo update -Z minimal-versions`) and [cargo-hack] (to run `
 
 ```sh
 rustup toolchain add nightly
-cargo install cargo-hack
+cargo +stable install cargo-hack
 ```
 
 <!-- omit in toc -->
