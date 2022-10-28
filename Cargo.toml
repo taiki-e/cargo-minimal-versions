@@ -38,3 +38,6 @@ termcolor = "1"
 toml_edit = "0.15"
 
 [dev-dependencies]
+
+[profile.release]
+strip = "symbols"
