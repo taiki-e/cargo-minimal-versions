@@ -44,8 +44,15 @@ impl FromStr for Coloring {
 }
 
 static COLORING: AtomicU8 = AtomicU8::new(Coloring::AUTO);
+// Errors during argument parsing are returned before set_coloring, so check is_terminal first.
+pub(crate) fn init_coloring() {
+    use is_terminal::IsTerminal;
+    if !std::io::stderr().is_terminal() {
+        COLORING.store(Coloring::NEVER, Ordering::Relaxed);
+    }
+}
 pub(crate) fn set_coloring(color: Option<Coloring>) -> Result<()> {
-    let mut coloring = match color {
+    let new = match color {
         Some(color) => color,
         // https://doc.rust-lang.org/nightly/cargo/reference/config.html#termcolor
         None => match env::var_os("CARGO_TERM_COLOR") {
@@ -55,10 +62,11 @@ pub(crate) fn set_coloring(color: Option<Coloring>) -> Result<()> {
             None => Coloring::Auto,
         },
     };
-    if coloring == Coloring::Auto && !atty::is(atty::Stream::Stderr) {
-        coloring = Coloring::Never;
+    if new == Coloring::Auto && coloring() == ColorChoice::Never {
+        // If coloring is already set to never by init_coloring, respect it.
+    } else {
+        COLORING.store(new as _, Ordering::Relaxed);
     }
-    COLORING.store(coloring as _, Ordering::Relaxed);
     Ok(())
 }
 fn coloring() -> ColorChoice {
@@ -88,7 +96,6 @@ global_flag!(verbose: bool = AtomicBool::new(false));
 global_flag!(error: bool = AtomicBool::new(false));
 global_flag!(warn: bool = AtomicBool::new(false));
 
-#[allow(clippy::let_underscore_drop)]
 pub(crate) fn print_status(status: &str, color: Option<Color>) -> StandardStream {
     let mut stream = StandardStream::stderr(coloring());
     let _ = stream.set_color(ColorSpec::new().set_bold(true).set_fg(color));
@@ -105,7 +112,6 @@ macro_rules! error {
         use std::io::Write;
         crate::term::error::set(true);
         let mut stream = crate::term::print_status("error", Some(termcolor::Color::Red));
-        #[allow(clippy::let_underscore_drop)]
         let _ = writeln!(stream, $($msg),*);
     }};
 }
@@ -115,7 +121,6 @@ macro_rules! warn {
         use std::io::Write;
         crate::term::warn::set(true);
         let mut stream = crate::term::print_status("warning", Some(termcolor::Color::Yellow));
-        #[allow(clippy::let_underscore_drop)]
         let _ = writeln!(stream, $($msg),*);
     }};
 }
@@ -124,7 +129,6 @@ macro_rules! info {
     ($($msg:expr),* $(,)?) => {{
         use std::io::Write;
         let mut stream = crate::term::print_status("info", None);
-        #[allow(clippy::let_underscore_drop)]
         let _ = writeln!(stream, $($msg),*);
     }};
 }
