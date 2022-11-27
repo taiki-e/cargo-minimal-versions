@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Replace `atty` with `is-terminal`. ([#11](https://github.com/taiki-e/cargo-minimal-versions/pull/11))
+
 ## [0.1.7] - 2022-10-25
 
 - Work around a rustup bug ([rust-lang/rustup#3036](https://github.com/rust-lang/rustup/issues/3036)) on Windows.
