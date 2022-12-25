@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Update `toml_edit` to 0.16.
+
 ## [0.1.8] - 2022-11-27
 
 - Replace `atty` with `is-terminal`. ([#11](https://github.com/taiki-e/cargo-minimal-versions/pull/11))
