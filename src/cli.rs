@@ -148,6 +148,8 @@ impl Args {
             }
         }
 
+        term::set_coloring(color)?;
+
         let subcommand = match subcommand {
             Some(subcommand) => subcommand,
             None => bail!("expected subcommand"),
@@ -158,7 +160,6 @@ impl Args {
         if verbose > 1 {
             cargo_args.push(format!("-{}", "v".repeat(verbose - 1)));
         }
-        term::set_coloring(color)?;
         if let Some(color) = color {
             cargo_args.push("--color".to_owned());
             cargo_args.push(color.as_str().to_owned());
