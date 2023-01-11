@@ -12,6 +12,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 - Distribute prebuilt macOS universal binary.
 
+- Distribute prebuilt binary for x86_64 FreeBSD.
+
 ## [0.1.9] - 2022-12-25
 
 - Update `toml_edit` to 0.16.
