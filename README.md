@@ -74,14 +74,14 @@ toolchain (to run `cargo update -Z minimal-versions`) and [cargo-hack] (to run `
 
 ```sh
 rustup toolchain add nightly
-cargo +stable install cargo-hack
+cargo +stable install cargo-hack --locked
 ```
 
 <!-- omit in toc -->
 ### From source
 
 ```sh
-cargo +stable install cargo-minimal-versions
+cargo +stable install cargo-minimal-versions --locked
 ```
 
 *Compiler support: requires rustc 1.60+*
@@ -153,7 +153,9 @@ cargo binstall cargo-minimal-versions
 
 - [cargo-hack]: Cargo subcommand to provide various options useful for testing and continuous integration.
 - [cargo-llvm-cov]: Cargo subcommand to easily use LLVM source-based code coverage.
+- [cargo-config2]: Library to load and resolve Cargo configuration.
 
+[cargo-config2]: https://github.com/taiki-e/cargo-config2
 [cargo-hack]: https://github.com/taiki-e/cargo-hack
 [cargo-llvm-cov]: https://github.com/taiki-e/cargo-llvm-cov
 [cargo#5657]: https://github.com/rust-lang/cargo/issues/5657
