@@ -49,6 +49,7 @@ jobs:
           - rust: nightly
             os: windows-2019
     runs-on: ${{ matrix.os || 'ubuntu-18.04' }}
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
         with:
@@ -91,6 +92,7 @@ jobs:
             os: windows-2019
           - target: x86_64-unknown-freebsd
     runs-on: ${{ matrix.os || 'ubuntu-18.04' }}
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
         with:
@@ -124,6 +126,7 @@ jobs:
     # prettier-ignore
     needs: [deny, msrv, tidy, test, build] # tidy:needs
     runs-on: ubuntu-18.04
+    timeout-minutes: 60
     steps:
       - name: Mark the job as a success
         run: exit 0
