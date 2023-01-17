@@ -122,7 +122,7 @@ impl Args {
                 Long(flag) => {
                     let flag = format!("--{flag}");
                     if let Some(val) = parser.optional_value() {
-                        cargo_args.push(format!("{flag}={}", val.parse::<String>()?));
+                        cargo_args.push(format!("{flag}={}", val.string()?));
                     } else {
                         cargo_args.push(flag);
                     }
@@ -133,13 +133,13 @@ impl Args {
                         // short flags without value as special cases.
                         cargo_args.push(format!("-{flag}"));
                     } else if let Some(val) = parser.optional_value() {
-                        cargo_args.push(format!("-{flag}{}", val.parse::<String>()?));
+                        cargo_args.push(format!("-{flag}{}", val.string()?));
                     } else {
                         cargo_args.push(format!("-{flag}"));
                     }
                 }
                 Value(val) => {
-                    let val = val.parse::<String>()?;
+                    let val = val.string()?;
                     if subcommand.is_none() {
                         subcommand = Some(Subcommand::new(&val));
                     }
