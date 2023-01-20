@@ -44,6 +44,8 @@ To check all crates with minimal version dependencies:
 cargo minimal-versions check --workspace
 ```
 
+**Note:** ([If cargo-minimal-versions determined that it is necessary to do so for a correct minimal versions check](#details)) cargo-minimal-versions modifies `Cargo.toml` and `Cargo.lock` while running and restores it when finished. Any changes you made to those files during running will not be preserved.
+
 Normally, crates with `publish = false` do not need minimal version check. You can skip these crates by using `--ignore-private` flag.
 
 ```sh
@@ -124,7 +126,7 @@ This makes the installation faster and may avoid the impact of [problems caused 
 <!-- omit in toc -->
 ### Via Homebrew
 
-You can install [cargo-minimal-versions using Homebrew tap on macOS and Linux](https://github.com/taiki-e/homebrew-tap/blob/main/Formula/cargo-minimal-versions.rb):
+You can install [cargo-minimal-versions using Homebrew tap on macOS and Linux](https://github.com/taiki-e/homebrew-tap/blob/HEAD/Formula/cargo-minimal-versions.rb):
 
 ```sh
 brew install taiki-e/tap/cargo-minimal-versions
