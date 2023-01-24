@@ -46,7 +46,7 @@ cargo minimal-versions check --workspace
 
 **Note:** ([If cargo-minimal-versions determined that it is necessary to do so for a correct minimal versions check](#details)) cargo-minimal-versions modifies `Cargo.toml` and `Cargo.lock` while running and restores it when finished. Any changes you made to those files during running will not be preserved.
 
-Normally, crates with `publish = false` do not need minimal version check. You can skip these crates by using `--ignore-private` flag.
+Normally, crates with `publish = false` do not need minimal versions check. You can skip these crates by using `--ignore-private` flag.
 
 ```sh
 cargo minimal-versions check --workspace --ignore-private
