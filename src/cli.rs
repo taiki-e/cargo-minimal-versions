@@ -27,7 +27,7 @@ pub(crate) struct Args {
     pub(crate) rest: Vec<String>,
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq)]
 pub(crate) enum Subcommand {
     // build, check, run
     Builtin,
