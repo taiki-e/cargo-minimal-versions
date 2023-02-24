@@ -17,6 +17,7 @@ Cargo subcommand for proper use of -Z minimal-versions.
     build
     check
     test
+    generate-lockfile
     ...
 ";
 
@@ -33,6 +34,8 @@ pub(crate) enum Subcommand {
     Builtin,
     // test, bench
     BuiltinDev,
+    // generate-lockfile
+    GenerateLockfile,
     Other,
 }
 
@@ -42,6 +45,7 @@ impl Subcommand {
         match s {
             "b" | "build" | "c" | "check" | "r" | "run" => Self::Builtin,
             "t" | "test" | "bench" => Self::BuiltinDev,
+            "generate-lockfile" => Self::GenerateLockfile,
             _ => {
                 warn!("unrecognized subcommand '{s}'");
                 Self::Other

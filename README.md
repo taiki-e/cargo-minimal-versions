@@ -32,6 +32,7 @@ SUBCOMMANDS:
     build
     check
     test
+    generate-lockfile
     ...
 ```
 <!-- readme-long-help:end -->
@@ -50,6 +51,12 @@ Normally, crates with `publish = false` do not need minimal versions check. You 
 
 ```sh
 cargo minimal-versions check --workspace --ignore-private
+```
+
+To generate lockfile with minimal version dependencies, use `generate-lockfile` subcommand:
+
+```sh
+cargo minimal-versions generate-lockfile
 ```
 
 ## Details

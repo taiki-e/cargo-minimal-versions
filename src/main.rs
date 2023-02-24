@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms, single_use_lifetimes, unreachable_pub)]
 #![warn(clippy::pedantic)]
+#![allow(clippy::too_many_lines)]
 
 #[macro_use]
 mod term;
@@ -46,8 +47,7 @@ fn try_main() -> Result<()> {
                 a.starts_with("--example=") || a.starts_with("--test=") || a.starts_with("--bench=")
             }
         });
-    // TODO: provide option to keep updated Cargo.lock
-    let restore_lockfile = true;
+    let restore_lockfile = args.subcommand != cli::Subcommand::GenerateLockfile;
     let restore = restore::Manager::new();
     let mut restore_handles = Vec::with_capacity(ws.metadata.workspace_members.len());
     if remove_dev_deps {
@@ -79,16 +79,18 @@ fn try_main() -> Result<()> {
     info!("running {cargo}");
     cargo.run()?;
 
-    let mut cargo = ws.cargo();
-    // TODO: Provide a way to do this without using cargo-hack.
-    cargo.arg("hack");
-    cargo.args(args.cargo_args);
-    if !args.rest.is_empty() {
-        cargo.arg("--");
-        cargo.args(args.rest);
+    if args.subcommand != cli::Subcommand::GenerateLockfile {
+        let mut cargo = ws.cargo();
+        // TODO: Provide a way to do this without using cargo-hack.
+        cargo.arg("hack");
+        cargo.args(args.cargo_args);
+        if !args.rest.is_empty() {
+            cargo.arg("--");
+            cargo.args(args.rest);
+        }
+        info!("running {cargo}");
+        cargo.run()?;
     }
-    info!("running {cargo}");
-    cargo.run()?;
 
     // Restore original Cargo.toml and Cargo.lock.
     drop(restore_handles);

@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Support `cargo minimal-versions generate-lockfile` to generate lockfile with minimal version dependencies. ([#18](https://github.com/taiki-e/cargo-minimal-versions/pull/18))
+
 ## [0.1.11] - 2023-01-24
 
 - Update `toml_edit` to 0.18.
