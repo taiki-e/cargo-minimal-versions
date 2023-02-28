@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms, single_use_lifetimes, unreachable_pub)]
 #![warn(clippy::pedantic)]
+#![allow(clippy::let_underscore_untyped)]
 
 #[macro_use]
 mod term;
