@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Update `toml_edit` to 0.19.
+
 ## [0.1.11] - 2023-01-24
 
 - Update `toml_edit` to 0.18.
