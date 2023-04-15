@@ -12,7 +12,7 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [0.1.12] - 2023-04-15
 
-- Fix version detection with dev build
+- Fix version detection with dev build.
 
 - Update `toml_edit` to 0.19.
 
