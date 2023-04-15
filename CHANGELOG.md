@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Fix version detection with dev build
+
 - Update `toml_edit` to 0.19.
 
 ## [0.1.11] - 2023-01-24
