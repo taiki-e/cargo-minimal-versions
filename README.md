@@ -2,7 +2,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/cargo-minimal-versions?style=flat-square&logo=rust)](https://crates.io/crates/cargo-minimal-versions)
 [![license](https://img.shields.io/badge/license-Apache--2.0_OR_MIT-blue?style=flat-square)](#license)
-[![rustc](https://img.shields.io/badge/rustc-1.60+-blue?style=flat-square&logo=rust)](https://www.rust-lang.org)
+[![rustc](https://img.shields.io/badge/rustc-1.64+-blue?style=flat-square&logo=rust)](https://www.rust-lang.org)
 [![build status](https://img.shields.io/github/actions/workflow/status/taiki-e/cargo-minimal-versions/ci.yml?branch=main&style=flat-square&logo=github)](https://github.com/taiki-e/cargo-minimal-versions/actions)
 
 Cargo subcommand for proper use of [`-Z minimal-versions`][cargo#5657].
@@ -86,13 +86,10 @@ cargo +stable install cargo-hack --locked
 cargo +stable install cargo-minimal-versions --locked
 ```
 
-*Compiler support: requires rustc 1.60+*
+*Compiler support: requires rustc 1.64+*
 
-<!-- TODO: test
 cargo-minimal-versions is usually runnable with Cargo versions older than the Rust version
-required for installation (e.g., `cargo +1.31 hack check`). Currently, to run
-cargo-minimal-versions requires Cargo 1.26+.
--->
+required for installation (e.g., `cargo +1.59 minimal-versions check`).
 
 <!-- omit in toc -->
 ### From prebuilt binaries
