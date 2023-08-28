@@ -12,8 +12,8 @@ use crate::term;
 static USAGE: &str = "cargo-minimal-versions\n
 Cargo subcommand for proper use of -Z minimal-versions.
 \nUSAGE:
-    cargo minimal-versions <SUBCOMMAND> [CARGO_OPTIONS]
-\nSUBCOMMANDS:
+    cargo minimal-versions <CARGO_SUBCOMMAND> [OPTIONS] [CARGO_OPTIONS]
+\nCARGO_SUBCOMMANDS:
     build
     check
     test
@@ -21,6 +21,7 @@ Cargo subcommand for proper use of -Z minimal-versions.
 ";
 
 pub(crate) struct Args {
+    pub(crate) no_private: bool,
     pub(crate) subcommand: Subcommand,
     pub(crate) manifest_path: Option<Utf8PathBuf>,
     pub(crate) cargo_args: Vec<String>,
@@ -93,6 +94,8 @@ impl Args {
         let mut manifest_path: Option<Utf8PathBuf> = None;
         let mut verbose = 0;
 
+        let mut no_private = false;
+
         let mut parser = lexopt::Parser::from_args(args);
         while let Some(arg) = parser.next()? {
             macro_rules! parse_opt {
@@ -103,11 +106,26 @@ impl Args {
                     $opt = Some(parser.value()?.parse()?);
                 }};
             }
+            macro_rules! parse_flag {
+                ($flag:ident $(,)?) => {{
+                    if $flag {
+                        multi_arg(&arg)?;
+                    }
+                    $flag = true;
+                }};
+            }
 
             match arg {
                 Long("color") => parse_opt!(color),
                 Long("manifest-path") => parse_opt!(manifest_path),
                 Short('v') | Long("verbose") => verbose += 1,
+
+                // cargo-hack flags
+                // However, do not propagate to cargo-hack, as the same process
+                // is done by cargo-minimal-versions.
+                Long("remove-dev-deps" | "no-dev-deps") => {} // TODO: warn?
+                // Turn --ignore-private into --no-private.
+                Long("ignore-private" | "no-private") => parse_flag!(no_private),
 
                 Short('h') | Long("help") if subcommand.is_none() => {
                     print!("{USAGE}");
@@ -169,7 +187,7 @@ impl Args {
             cargo_args.push(path.as_str().to_owned());
         }
 
-        Ok(Self { subcommand, manifest_path, cargo_args, rest })
+        Ok(Self { no_private, subcommand, manifest_path, cargo_args, rest })
     }
 }
 

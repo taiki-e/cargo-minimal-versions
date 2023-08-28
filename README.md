@@ -25,9 +25,9 @@ cargo-minimal-versions
 Cargo subcommand for proper use of -Z minimal-versions.
 
 USAGE:
-    cargo minimal-versions <SUBCOMMAND> [CARGO_OPTIONS]
+    cargo minimal-versions <CARGO_SUBCOMMAND> [OPTIONS] [CARGO_OPTIONS]
 
-SUBCOMMANDS:
+CARGO_SUBCOMMANDS:
     build
     check
     test

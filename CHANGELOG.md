@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Improve the behavior of `--ignore-private` to prevent private crate from affecting dependency resolution.
+
 ## [0.1.14] - 2023-08-14
 
 - Allow nightly to be specified by setting `RUSTC_BOOTSTRAP=1`, the same as for rustc and cargo.

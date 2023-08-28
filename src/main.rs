@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 #![warn(rust_2018_idioms, single_use_lifetimes, unreachable_pub)]
 #![warn(clippy::pedantic)]
+#![allow(clippy::too_many_lines)]
 
 #[macro_use]
 mod term;
@@ -14,7 +15,8 @@ mod restore;
 
 use std::env;
 
-use anyhow::{Context as _, Result};
+use anyhow::{bail, Context as _, Result};
+use camino::Utf8PathBuf;
 use fs_err as fs;
 
 use crate::{cargo::Workspace, cli::Args};
@@ -48,47 +50,96 @@ fn try_main() -> Result<()> {
         });
     // TODO: provide option to keep updated Cargo.lock
     let restore_lockfile = true;
+    with(&ws.metadata, remove_dev_deps, args.no_private, restore_lockfile, || {
+        // Update Cargo.lock to minimal version dependencies.
+        let mut cargo = ws.cargo_nightly();
+        cargo.args(["update", "-Z", "minimal-versions"]);
+        info!("running {cargo}");
+        cargo.run()?;
+
+        let mut cargo = ws.cargo();
+        // TODO: Provide a way to do this without using cargo-hack.
+        cargo.arg("hack");
+        cargo.args(args.cargo_args);
+        if !args.rest.is_empty() {
+            cargo.arg("--");
+            cargo.args(args.rest);
+        }
+        info!("running {cargo}");
+        cargo.run()
+    })
+}
+
+fn with(
+    metadata: &cargo_metadata::Metadata,
+    no_dev_deps: bool,
+    no_private: bool,
+    restore_lockfile: bool,
+    f: impl FnOnce() -> Result<()>,
+) -> Result<()> {
     let restore = restore::Manager::new();
-    let mut restore_handles = Vec::with_capacity(ws.metadata.workspace_members.len());
-    if remove_dev_deps {
-        for id in &ws.metadata.workspace_members {
-            let manifest_path = &ws.metadata[id].manifest_path;
+    let mut restore_handles = Vec::with_capacity(metadata.workspace_members.len());
+    let workspace_root = &metadata.workspace_root;
+    let root_manifest = &workspace_root.join("Cargo.toml");
+    let mut has_root_crate = false;
+    let mut private_crates = vec![];
+    for id in &metadata.workspace_members {
+        let package = &metadata[id];
+        let manifest_path = &package.manifest_path;
+        let is_root = manifest_path == root_manifest;
+        has_root_crate |= is_root;
+        // Publishing is unrestricted if null, and forbidden if an empty array.
+        let is_private = package.publish.as_ref().map_or(false, Vec::is_empty);
+        if is_private && no_private {
+            if is_root {
+                bail!("--no-private is not supported yet with workspace with private root crate");
+            }
+            private_crates.push(manifest_path);
+        } else if is_root && no_private {
+            //
+        } else if no_dev_deps {
             let orig = fs::read_to_string(manifest_path)?;
             let mut doc = orig
                 .parse()
                 .with_context(|| format!("failed to parse manifest `{manifest_path}` as toml"))?;
-            self::remove_dev_deps(&mut doc);
-            restore_handles.push(restore.push(orig, manifest_path.as_std_path()));
             if term::verbose() {
                 info!("removing dev-dependencies from {manifest_path}");
             }
+            self::remove_dev_deps(&mut doc);
+            restore_handles.push(restore.push(orig, manifest_path.as_std_path()));
             fs::write(manifest_path, doc.to_string())?;
         }
     }
+    if no_private && (no_dev_deps && has_root_crate || !private_crates.is_empty()) {
+        let manifest_path = root_manifest;
+        let orig = fs::read_to_string(manifest_path)?;
+        let mut doc = orig
+            .parse()
+            .with_context(|| format!("failed to parse manifest `{manifest_path}` as toml"))?;
+        if no_dev_deps && has_root_crate {
+            if term::verbose() {
+                info!("removing dev-dependencies from {manifest_path}");
+            }
+            self::remove_dev_deps(&mut doc);
+        }
+        if !private_crates.is_empty() {
+            if term::verbose() {
+                info!("removing private crates from {manifest_path}");
+            }
+            self::remove_private_crates(&mut doc, metadata, &private_crates)?;
+        }
+        restore_handles.push(restore.push(orig, manifest_path.as_std_path()));
+        fs::write(manifest_path, doc.to_string())?;
+    }
     if restore_lockfile {
-        let lockfile = &ws.metadata.workspace_root.join("Cargo.lock");
+        let lockfile = &metadata.workspace_root.join("Cargo.lock");
         if lockfile.exists() {
             restore_handles
                 .push(restore.push(fs::read_to_string(lockfile)?, lockfile.as_std_path()));
         }
     }
 
-    // Update Cargo.lock to minimal version dependencies.
-    let mut cargo = ws.cargo_nightly();
-    cargo.args(["update", "-Z", "minimal-versions"]);
-    info!("running {cargo}");
-    cargo.run()?;
-
-    let mut cargo = ws.cargo();
-    // TODO: Provide a way to do this without using cargo-hack.
-    cargo.arg("hack");
-    cargo.args(args.cargo_args);
-    if !args.rest.is_empty() {
-        cargo.arg("--");
-        cargo.args(args.rest);
-    }
-    info!("running {cargo}");
-    cargo.run()?;
+    f()?;
 
     // Restore original Cargo.toml and Cargo.lock.
     drop(restore_handles);
@@ -107,6 +158,33 @@ fn remove_dev_deps(doc: &mut toml_edit::Document) {
             }
         }
     }
+}
+
+fn remove_private_crates(
+    doc: &mut toml_edit::Document,
+    metadata: &cargo_metadata::Metadata,
+    private_crates: &[&Utf8PathBuf],
+) -> Result<()> {
+    let table = doc.as_table_mut();
+    if let Some(workspace) = table.get_mut("workspace").and_then(toml_edit::Item::as_table_like_mut)
+    {
+        if let Some(members) = workspace.get_mut("members").and_then(toml_edit::Item::as_array_mut)
+        {
+            let mut i = 0;
+            while i < members.len() {
+                if let Some(member) = members.get(i).and_then(toml_edit::Value::as_str) {
+                    let manifest_path =
+                        metadata.workspace_root.join(member).join("Cargo.toml").canonicalize()?;
+                    if private_crates.iter().any(|p| p.as_std_path() == manifest_path) {
+                        members.remove(i);
+                        continue;
+                    }
+                }
+                i += 1;
+            }
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
