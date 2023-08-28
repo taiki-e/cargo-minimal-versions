@@ -10,7 +10,11 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
-- Improve the behavior of `--ignore-private` to prevent private crate from affecting dependency resolution.
+- Improve the behavior of `--ignore-private` flag to prevent private crates from affecting lockfile and metadata.
+
+  This fixes some false negatives.
+
+- Add `--no-private` flag as an alias of `--ignore-private` flag.
 
 ## [0.1.14] - 2023-08-14
 
