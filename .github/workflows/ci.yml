@@ -66,11 +66,12 @@ jobs:
       - run: echo "RUSTFLAGS=${RUSTFLAGS} -C target-feature=+crt-static" >>"${GITHUB_ENV}"
         if: startsWith(matrix.os, 'windows')
       - run: cargo test --workspace --all-features
-      - run: cargo minimal-versions build --workspace --all-features --ignore-private
+      - run: cargo hack build --workspace --no-private --feature-powerset --no-dev-deps
+      - run: cargo minimal-versions build --workspace --no-private --all-features
         if: startsWith(matrix.rust, 'nightly')
       - run: cargo install -f --path . --debug
-      - run: cargo minimal-versions check --workspace --all-features --ignore-private -v
-      - run: cargo minimal-versions build --workspace --all-features --ignore-private -v
+      - run: cargo minimal-versions check --workspace --no-private --all-features -v
+      - run: cargo minimal-versions build --workspace --no-private --all-features -v
       - run: cargo minimal-versions test --workspace --all-features -v
 
   build:
