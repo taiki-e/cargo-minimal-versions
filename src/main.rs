@@ -13,10 +13,9 @@ mod cargo;
 mod cli;
 mod restore;
 
-use std::env;
+use std::{env, path::PathBuf};
 
 use anyhow::{bail, Context as _, Result};
-use camino::Utf8PathBuf;
 use fs_err as fs;
 
 use crate::{cargo::Workspace, cli::Args};
@@ -95,7 +94,7 @@ fn with(
             if is_root {
                 bail!("--no-private is not supported yet with workspace with private root crate");
             }
-            private_crates.push(manifest_path);
+            private_crates.push(manifest_path.canonicalize()?);
         } else if is_root && no_private {
             //
         } else if no_dev_deps {
@@ -164,7 +163,7 @@ fn remove_dev_deps(doc: &mut toml_edit::Document) {
 fn remove_private_crates(
     doc: &mut toml_edit::Document,
     metadata: &cargo_metadata::Metadata,
-    private_crates: &[&Utf8PathBuf],
+    private_crates: &[PathBuf],
 ) -> Result<()> {
     let table = doc.as_table_mut();
     if let Some(workspace) = table.get_mut("workspace").and_then(toml_edit::Item::as_table_like_mut)
@@ -176,7 +175,7 @@ fn remove_private_crates(
                 if let Some(member) = members.get(i).and_then(toml_edit::Value::as_str) {
                     let manifest_path =
                         metadata.workspace_root.join(member).join("Cargo.toml").canonicalize()?;
-                    if private_crates.iter().any(|p| p.as_std_path() == manifest_path) {
+                    if private_crates.iter().any(|p| *p == manifest_path) {
                         members.remove(i);
                         continue;
                     }

@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Fix bug in `--ignore-private`/`--no-private` flag on Windows.
+
 ## [0.1.15] - 2023-08-28
 
 - Improve the behavior of `--ignore-private` flag to prevent private crates from affecting lockfile and metadata.
