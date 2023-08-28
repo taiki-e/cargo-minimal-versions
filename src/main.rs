@@ -70,6 +70,7 @@ fn try_main() -> Result<()> {
     })
 }
 
+// Adapted from https://github.com/taiki-e/cargo-no-dev-deps
 fn with(
     metadata: &cargo_metadata::Metadata,
     no_dev_deps: bool,
@@ -105,7 +106,7 @@ fn with(
             if term::verbose() {
                 info!("removing dev-dependencies from {manifest_path}");
             }
-            self::remove_dev_deps(&mut doc);
+            remove_dev_deps(&mut doc);
             restore_handles.push(restore.push(orig, manifest_path.as_std_path()));
             fs::write(manifest_path, doc.to_string())?;
         }
@@ -120,13 +121,13 @@ fn with(
             if term::verbose() {
                 info!("removing dev-dependencies from {manifest_path}");
             }
-            self::remove_dev_deps(&mut doc);
+            remove_dev_deps(&mut doc);
         }
         if !private_crates.is_empty() {
             if term::verbose() {
                 info!("removing private crates from {manifest_path}");
             }
-            self::remove_private_crates(&mut doc, metadata, &private_crates)?;
+            remove_private_crates(&mut doc, metadata, &private_crates)?;
         }
         restore_handles.push(restore.push(orig, manifest_path.as_std_path()));
         fs::write(manifest_path, doc.to_string())?;

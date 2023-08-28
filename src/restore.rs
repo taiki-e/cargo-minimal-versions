@@ -14,7 +14,6 @@ use crate::term;
 #[derive(Clone)]
 pub(crate) struct Manager {
     /// Information on files that need to be restored.
-    /// If `needs_restore` is `false`, this is always empty.
     files: Arc<Mutex<Slab<File>>>,
 }
 
