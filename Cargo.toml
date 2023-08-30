@@ -41,4 +41,6 @@ toml_edit = "0.19"
 [dev-dependencies]
 
 [profile.release]
+codegen-units = 1
+lto = true
 strip = "symbols"
