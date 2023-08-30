@@ -141,7 +141,7 @@ scoop install cargo-minimal-versions
 <!-- omit in toc -->
 ### Via cargo-binstall
 
-You can install cargo-minimal-versions using [cargo-binstall](https://github.com/ryankurte/cargo-binstall):
+You can install cargo-minimal-versions using [cargo-binstall](https://github.com/cargo-bins/cargo-binstall):
 
 ```sh
 cargo binstall cargo-minimal-versions
