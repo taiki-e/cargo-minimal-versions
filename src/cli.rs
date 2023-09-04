@@ -168,10 +168,7 @@ impl Args {
 
         term::set_coloring(color)?;
 
-        let subcommand = match subcommand {
-            Some(subcommand) => subcommand,
-            None => bail!("expected subcommand"),
-        };
+        let Some(subcommand) = subcommand else { bail!("expected subcommand") };
 
         term::verbose::set(verbose != 0);
         // If `-vv` is passed, propagate `-v` to cargo.
