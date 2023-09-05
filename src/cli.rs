@@ -1,7 +1,6 @@
 use std::{env, ffi::OsString};
 
 use anyhow::{bail, format_err, Result};
-use camino::Utf8PathBuf;
 use lexopt::{
     Arg::{Long, Short, Value},
     ValueExt,
@@ -23,7 +22,7 @@ Cargo subcommand for proper use of -Z minimal-versions.
 pub(crate) struct Args {
     pub(crate) no_private: bool,
     pub(crate) subcommand: Subcommand,
-    pub(crate) manifest_path: Option<Utf8PathBuf>,
+    pub(crate) manifest_path: Option<String>,
     pub(crate) cargo_args: Vec<String>,
     pub(crate) rest: Vec<String>,
 }
@@ -91,7 +90,7 @@ impl Args {
         let mut cargo_args = vec![];
         let mut subcommand = None;
         let mut color = None;
-        let mut manifest_path: Option<Utf8PathBuf> = None;
+        let mut manifest_path: Option<String> = None;
         let mut verbose = 0;
 
         let mut no_private = false;
@@ -181,7 +180,7 @@ impl Args {
         }
         if let Some(path) = &manifest_path {
             cargo_args.push("--manifest-path".to_owned());
-            cargo_args.push(path.as_str().to_owned());
+            cargo_args.push(path.clone());
         }
 
         Ok(Self { no_private, subcommand, manifest_path, cargo_args, rest })

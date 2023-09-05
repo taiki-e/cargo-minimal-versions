@@ -25,7 +25,6 @@ resolver = "2"
 
 [dependencies]
 anyhow = "1.0.47"
-camino = "1.0.5"
 cargo_metadata = "0.17"
 ctrlc = { version = "3.1.4", features = ["termination"] }
 fs-err = "2.5"
