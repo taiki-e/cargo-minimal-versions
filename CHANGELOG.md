@@ -10,6 +10,10 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Improve support for very old Cargo (pre-1.39).
+
+- Remove dependency on `cargo_metadata`.
+
 ## [0.1.16] - 2023-08-28
 
 - Fix bug in `--ignore-private`/`--no-private` flag on Windows.

@@ -12,6 +12,7 @@ mod process;
 mod cargo;
 mod cli;
 mod manifest;
+mod metadata;
 mod restore;
 
 use std::env;

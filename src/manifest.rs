@@ -1,13 +1,61 @@
-// Adapted from https://github.com/taiki-e/cargo-no-dev-deps
+use std::path::{Path, PathBuf};
 
-use std::path::Path;
-
-use anyhow::{bail, Context as _, Result};
-use cargo_metadata::Metadata;
+use anyhow::{bail, format_err, Context as _, Result};
 use fs_err as fs;
 
-use crate::{restore, term};
+use crate::{metadata::Metadata, restore, term};
 
+type ParseResult<T> = Result<T, &'static str>;
+
+// Adapted from https://github.com/taiki-e/cargo-hack
+// Cargo manifest
+// https://doc.rust-lang.org/nightly/cargo/reference/manifest.html
+pub(crate) struct Manifest {
+    pub(crate) raw: String,
+    pub(crate) doc: toml_edit::Document,
+    pub(crate) package: Package,
+}
+
+impl Manifest {
+    pub(crate) fn new(path: &Path, metadata_cargo_version: u32) -> Result<Self> {
+        let raw = fs::read_to_string(path)?;
+        let doc: toml_edit::Document = raw
+            .parse()
+            .with_context(|| format!("failed to parse manifest `{}` as toml", path.display()))?;
+        let package = Package::from_table(&doc, metadata_cargo_version).map_err(|s| {
+            format_err!("failed to parse `{s}` field from manifest `{}`", path.display())
+        })?;
+        Ok(Self { raw, doc, package })
+    }
+}
+
+pub(crate) struct Package {
+    // `metadata.package.publish` requires Rust 1.39
+    pub(crate) publish: Option<bool>,
+}
+
+impl Package {
+    fn from_table(doc: &toml_edit::Document, metadata_cargo_version: u32) -> ParseResult<Self> {
+        let package = doc.get("package").and_then(toml_edit::Item::as_table).ok_or("package")?;
+
+        Ok(Self {
+            // Publishing is unrestricted if `true` or the field is not
+            // specified, and forbidden if `false` or the array is empty.
+            publish: if metadata_cargo_version >= 39 {
+                None // Use `metadata.package.publish` instead.
+            } else {
+                Some(match package.get("publish") {
+                    None => true,
+                    Some(toml_edit::Item::Value(toml_edit::Value::Boolean(b))) => *b.value(),
+                    Some(toml_edit::Item::Value(toml_edit::Value::Array(a))) => !a.is_empty(),
+                    Some(_) => return Err("publish"),
+                })
+            },
+        })
+    }
+}
+
+// Adapted from https://github.com/taiki-e/cargo-no-dev-deps
 pub(crate) fn with(
     metadata: &Metadata,
     no_dev_deps: bool,
@@ -17,43 +65,54 @@ pub(crate) fn with(
 ) -> Result<()> {
     let restore = restore::Manager::new();
     let mut restore_handles = Vec::with_capacity(metadata.workspace_members.len());
-    let workspace_root = metadata.workspace_root.as_std_path();
+    let workspace_root = &metadata.workspace_root;
     let root_manifest = &workspace_root.join("Cargo.toml");
+    let mut root_crate = None;
     let mut has_root_crate = false;
     let mut private_crates = vec![];
     for id in &metadata.workspace_members {
-        let package = &metadata[id];
-        let manifest_path = package.manifest_path.as_std_path();
+        let package = &metadata.packages[id];
+        let manifest_path = &package.manifest_path;
         let is_root = manifest_path == root_manifest;
         has_root_crate |= is_root;
-        // Publishing is unrestricted if null, and forbidden if an empty array.
-        let is_private = package.publish.as_ref().map_or(false, Vec::is_empty);
+        let mut manifest = None;
+        let is_private = if metadata.cargo_version >= 39 {
+            !package.publish
+        } else {
+            let m = Manifest::new(manifest_path, metadata.cargo_version)?;
+            let is_private = !m.package.publish.unwrap();
+            manifest = Some(m);
+            is_private
+        };
         if is_private && no_private {
             if is_root {
                 bail!("--no-private is not supported yet with workspace with private root crate");
             }
             private_crates.push(manifest_path);
         } else if is_root && no_private {
+            root_crate = Some(manifest);
             // This case is handled in the if block after loop.
         } else if no_dev_deps {
-            let orig = fs::read_to_string(manifest_path)?;
-            let mut doc = orig.parse().with_context(|| {
-                format!("failed to parse manifest `{}` as toml", manifest_path.display())
-            })?;
+            let manifest = match manifest {
+                Some(manifest) => manifest,
+                None => Manifest::new(manifest_path, metadata.cargo_version)?,
+            };
+            let mut doc = manifest.doc;
             if term::verbose() {
                 info!("removing dev-dependencies from {}", manifest_path.display());
             }
             remove_dev_deps(&mut doc);
-            restore_handles.push(restore.push(orig, manifest_path));
+            restore_handles.push(restore.register(manifest.raw, manifest_path));
             fs::write(manifest_path, doc.to_string())?;
         }
     }
-    if no_private && (no_dev_deps && has_root_crate || !private_crates.is_empty()) {
+    if no_private && (no_dev_deps && root_crate.is_some() || !private_crates.is_empty()) {
         let manifest_path = root_manifest;
-        let orig = fs::read_to_string(manifest_path)?;
-        let mut doc = orig.parse().with_context(|| {
-            format!("failed to parse manifest `{}` as toml", manifest_path.display())
-        })?;
+        let manifest = match root_crate.unwrap() {
+            Some(manifest) => manifest,
+            None => Manifest::new(manifest_path, metadata.cargo_version)?,
+        };
+        let mut doc = manifest.doc;
         if no_dev_deps && has_root_crate {
             if term::verbose() {
                 info!("removing dev-dependencies from {}", manifest_path.display());
@@ -66,13 +125,13 @@ pub(crate) fn with(
             }
             remove_private_crates(&mut doc, workspace_root, &private_crates)?;
         }
-        restore_handles.push(restore.push(orig, manifest_path));
+        restore_handles.push(restore.register(manifest.raw, manifest_path));
         fs::write(manifest_path, doc.to_string())?;
     }
     if restore_lockfile {
         let lockfile = &workspace_root.join("Cargo.lock");
         if lockfile.exists() {
-            restore_handles.push(restore.push(fs::read_to_string(lockfile)?, lockfile));
+            restore_handles.push(restore.register(fs::read_to_string(lockfile)?, lockfile));
         }
     }
 
@@ -100,7 +159,7 @@ fn remove_dev_deps(doc: &mut toml_edit::Document) {
 fn remove_private_crates(
     doc: &mut toml_edit::Document,
     workspace_root: &Path,
-    private_crates: &[&Path],
+    private_crates: &[&PathBuf],
 ) -> Result<()> {
     let table = doc.as_table_mut();
     if let Some(workspace) = table.get_mut("workspace").and_then(toml_edit::Item::as_table_like_mut)
