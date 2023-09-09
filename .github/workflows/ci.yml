@@ -74,6 +74,26 @@ jobs:
       - run: cargo minimal-versions build --workspace --no-private --all-features -v
       - run: cargo minimal-versions test --workspace --all-features -v
 
+  test-no-rustup:
+    name: test (no rustup)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container: alpine:latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install Rust
+        run: apk --no-cache add bash cargo
+        shell: sh
+      - uses: taiki-e/install-action@cargo-hack
+      - run: echo "RUSTC_BOOTSTRAP=1" >>"${GITHUB_ENV}"
+      - run: cargo test --workspace --all-features
+      - run: cargo install -f --path . --debug
+      - run: cargo minimal-versions check --workspace --no-private --all-features -v
+      - run: cargo minimal-versions build --workspace --no-private --all-features -v
+      - run: cargo minimal-versions test --workspace --all-features -v
+
   build:
     name: build (${{ matrix.target }})
     strategy:
