@@ -103,7 +103,7 @@ Prebuilt binaries are available for macOS, Linux (gnu and musl), Windows (static
 # Get host target
 host=$(rustc -Vv | grep host | sed 's/host: //')
 # Download binary and install to $HOME/.cargo/bin
-curl -LsSf https://github.com/taiki-e/cargo-minimal-versions/releases/latest/download/cargo-minimal-versions-$host.tar.gz | tar xzf - -C $HOME/.cargo/bin
+curl --proto '=https' --tlsv1.2 -fsSL https://github.com/taiki-e/cargo-minimal-versions/releases/latest/download/cargo-minimal-versions-$host.tar.gz | tar xzf - -C "$HOME/.cargo/bin"
 ```
 
 </details>
