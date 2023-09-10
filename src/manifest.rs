@@ -1,4 +1,6 @@
-use std::path::{Path, PathBuf};
+// Adapted from https://github.com/taiki-e/cargo-no-dev-deps
+
+use std::path::Path;
 
 use anyhow::{bail, format_err, Context as _, Result};
 use fs_err as fs;
@@ -55,7 +57,6 @@ impl Package {
     }
 }
 
-// Adapted from https://github.com/taiki-e/cargo-no-dev-deps
 pub(crate) fn with(
     metadata: &Metadata,
     no_dev_deps: bool,
@@ -72,7 +73,7 @@ pub(crate) fn with(
     let mut private_crates = vec![];
     for id in &metadata.workspace_members {
         let package = &metadata.packages[id];
-        let manifest_path = &package.manifest_path;
+        let manifest_path = &*package.manifest_path;
         let is_root = manifest_path == root_manifest;
         has_root_crate |= is_root;
         let mut manifest = None;
@@ -104,15 +105,24 @@ pub(crate) fn with(
             remove_dev_deps(&mut doc);
             restore_handles.push(restore.register(manifest.raw, manifest_path));
             fs::write(manifest_path, doc.to_string())?;
+        } else if is_root {
+            root_crate = Some(manifest);
         }
     }
     if no_private && (no_dev_deps && root_crate.is_some() || !private_crates.is_empty()) {
         let manifest_path = root_manifest;
-        let manifest = match root_crate.unwrap() {
-            Some(manifest) => manifest,
-            None => Manifest::new(manifest_path, metadata.cargo_version)?,
+        let (mut doc, orig) = match root_crate {
+            Some(Some(manifest)) => (manifest.doc, manifest.raw),
+            _ => {
+                let orig = fs::read_to_string(manifest_path)?;
+                (
+                    orig.parse().with_context(|| {
+                        format!("failed to parse manifest `{}` as toml", manifest_path.display())
+                    })?,
+                    orig,
+                )
+            }
         };
-        let mut doc = manifest.doc;
         if no_dev_deps && has_root_crate {
             if term::verbose() {
                 info!("removing dev-dependencies from {}", manifest_path.display());
@@ -125,7 +135,7 @@ pub(crate) fn with(
             }
             remove_private_crates(&mut doc, workspace_root, &private_crates)?;
         }
-        restore_handles.push(restore.register(manifest.raw, manifest_path));
+        restore_handles.push(restore.register(orig, manifest_path));
         fs::write(manifest_path, doc.to_string())?;
     }
     if restore_lockfile {
@@ -159,7 +169,7 @@ fn remove_dev_deps(doc: &mut toml_edit::Document) {
 fn remove_private_crates(
     doc: &mut toml_edit::Document,
     workspace_root: &Path,
-    private_crates: &[&PathBuf],
+    private_crates: &[&Path],
 ) -> Result<()> {
     let table = doc.as_table_mut();
     if let Some(workspace) = table.get_mut("workspace").and_then(toml_edit::Item::as_table_like_mut)
