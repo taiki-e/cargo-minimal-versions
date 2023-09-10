@@ -1,6 +1,6 @@
 [package]
 name = "cargo-minimal-versions"
-version = "0.1.17"
+version = "0.1.18"
 edition = "2021"
 rust-version = "1.66"
 license = "Apache-2.0 OR MIT"

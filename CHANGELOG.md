@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.18] - 2023-09-10
+
 - Fix regression on `--no-private` flag with virtual workspace, introduced in 0.1.17.
 
 ## [0.1.17] - 2023-09-09
@@ -103,7 +105,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.17...HEAD
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.18...HEAD
+[0.1.18]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.17...v0.1.18
 [0.1.17]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.16...v0.1.17
 [0.1.16]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.15...v0.1.16
 [0.1.15]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.14...v0.1.15
