@@ -69,13 +69,11 @@ pub(crate) fn with(
     let workspace_root = &metadata.workspace_root;
     let root_manifest = &workspace_root.join("Cargo.toml");
     let mut root_crate = None;
-    let mut has_root_crate = false;
     let mut private_crates = vec![];
     for id in &metadata.workspace_members {
         let package = &metadata.packages[id];
         let manifest_path = &*package.manifest_path;
         let is_root = manifest_path == root_manifest;
-        has_root_crate |= is_root;
         let mut manifest = None;
         let is_private = if metadata.cargo_version >= 39 {
             !package.publish
@@ -105,11 +103,10 @@ pub(crate) fn with(
             remove_dev_deps(&mut doc);
             restore_handles.push(restore.register(manifest.raw, manifest_path));
             fs::write(manifest_path, doc.to_string())?;
-        } else if is_root {
-            root_crate = Some(manifest);
         }
     }
-    if no_private && (no_dev_deps && root_crate.is_some() || !private_crates.is_empty()) {
+    let has_root_crate = root_crate.is_some();
+    if no_private && (no_dev_deps && has_root_crate || !private_crates.is_empty()) {
         let manifest_path = root_manifest;
         let (mut doc, orig) = match root_crate {
             Some(Some(manifest)) => (manifest.doc, manifest.raw),
