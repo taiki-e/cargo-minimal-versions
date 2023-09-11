@@ -3,9 +3,8 @@
 use std::path::Path;
 
 use anyhow::{bail, format_err, Context as _, Result};
-use fs_err as fs;
 
-use crate::{metadata::Metadata, restore, term};
+use crate::{fs, metadata::Metadata, restore, term};
 
 type ParseResult<T> = Result<T, &'static str>;
 

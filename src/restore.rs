@@ -7,9 +7,8 @@ use std::{
 };
 
 use anyhow::Result;
-use fs_err as fs;
 
-use crate::term;
+use crate::{fs, term};
 
 #[derive(Clone)]
 pub(crate) struct Manager {

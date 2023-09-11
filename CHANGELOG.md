@@ -10,7 +10,7 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
-- Remove dependency on `slab` and `shell-escape`.
+- Remove dependency on `slab`, `shell-escape`, and `fs-err`.
 
 ## [0.1.18] - 2023-09-10
 

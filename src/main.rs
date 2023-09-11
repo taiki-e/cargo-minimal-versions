@@ -11,6 +11,7 @@ mod process;
 
 mod cargo;
 mod cli;
+mod fs;
 mod manifest;
 mod metadata;
 mod restore;
