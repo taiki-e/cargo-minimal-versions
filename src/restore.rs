@@ -8,19 +8,18 @@ use std::{
 
 use anyhow::Result;
 use fs_err as fs;
-use slab::Slab;
 
 use crate::term;
 
 #[derive(Clone)]
 pub(crate) struct Manager {
     /// Information on files that need to be restored.
-    files: Arc<Mutex<Slab<File>>>,
+    files: Arc<Mutex<Vec<File>>>,
 }
 
 impl Manager {
     pub(crate) fn new() -> Self {
-        let this = Self { files: Arc::new(Mutex::new(Slab::new())) };
+        let this = Self { files: Arc::new(Mutex::new(Vec::new())) };
 
         let cloned = this.clone();
         ctrlc::set_handler(move || {
@@ -36,32 +35,26 @@ impl Manager {
     }
 
     /// Registers the given path.
-    pub(crate) fn register(&self, text: impl Into<String>, path: impl Into<PathBuf>) -> Handle<'_> {
+    pub(crate) fn register(&self, text: impl Into<String>, path: impl Into<PathBuf>) {
         let mut files = self.files.lock().unwrap();
-        let entry = files.vacant_entry();
-        let key = entry.key();
-        entry.insert(File { text: text.into(), path: path.into() });
-
-        Handle(Some((self, key)))
+        files.push(File { text: text.into(), path: path.into() });
     }
 
-    fn restore(&self, key: usize) -> Result<()> {
-        let mut files = self.files.lock().unwrap();
-        if let Some(file) = files.try_remove(key) {
-            file.restore()?;
-        }
-        Ok(())
-    }
-
-    fn restore_all(&self) {
+    pub(crate) fn restore_all(&self) {
         let mut files = self.files.lock().unwrap();
         if !files.is_empty() {
-            for (_, file) in mem::take(&mut *files) {
+            for file in mem::take(&mut *files) {
                 if let Err(e) = file.restore() {
                     error!("{e:#}");
                 }
             }
         }
+    }
+}
+
+impl Drop for Manager {
+    fn drop(&mut self) {
+        self.restore_all();
     }
 }
 
@@ -79,25 +72,5 @@ impl File {
         }
         fs::write(&self.path, &self.text)?;
         Ok(())
-    }
-}
-
-#[must_use]
-pub(crate) struct Handle<'a>(Option<(&'a Manager, usize)>);
-
-impl Handle<'_> {
-    pub(crate) fn close(&mut self) -> Result<()> {
-        if let Some((manager, key)) = self.0.take() {
-            manager.restore(key)?;
-        }
-        Ok(())
-    }
-}
-
-impl Drop for Handle<'_> {
-    fn drop(&mut self) {
-        if let Err(e) = self.close() {
-            error!("{e:#}");
-        }
     }
 }

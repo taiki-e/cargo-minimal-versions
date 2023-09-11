@@ -65,7 +65,6 @@ pub(crate) fn with(
     f: impl FnOnce() -> Result<()>,
 ) -> Result<()> {
     let restore = restore::Manager::new();
-    let mut restore_handles = Vec::with_capacity(metadata.workspace_members.len());
     let workspace_root = &metadata.workspace_root;
     let root_manifest = &workspace_root.join("Cargo.toml");
     let mut root_crate = None;
@@ -101,7 +100,7 @@ pub(crate) fn with(
                 info!("removing dev-dependencies from {}", manifest_path.display());
             }
             remove_dev_deps(&mut doc);
-            restore_handles.push(restore.register(manifest.raw, manifest_path));
+            restore.register(manifest.raw, manifest_path);
             fs::write(manifest_path, doc.to_string())?;
         }
     }
@@ -132,20 +131,20 @@ pub(crate) fn with(
             }
             remove_private_crates(&mut doc, workspace_root, &private_crates)?;
         }
-        restore_handles.push(restore.register(orig, manifest_path));
+        restore.register(orig, manifest_path);
         fs::write(manifest_path, doc.to_string())?;
     }
     if restore_lockfile {
         let lockfile = &workspace_root.join("Cargo.lock");
         if lockfile.exists() {
-            restore_handles.push(restore.register(fs::read_to_string(lockfile)?, lockfile));
+            restore.register(fs::read_to_string(lockfile)?, lockfile);
         }
     }
 
     f()?;
 
     // Restore original Cargo.toml and Cargo.lock.
-    drop(restore_handles);
+    restore.restore_all();
 
     Ok(())
 }
