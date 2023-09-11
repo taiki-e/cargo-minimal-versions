@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Remove dependency on `slab` and `shell-escape`.
+
 ## [0.1.18] - 2023-09-10
 
 - Fix regression on `--no-private` flag with virtual workspace, introduced in 0.1.17.
