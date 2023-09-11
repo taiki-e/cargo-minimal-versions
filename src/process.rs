@@ -8,7 +8,6 @@ use std::{
 };
 
 use anyhow::{Context as _, Result};
-use shell_escape::escape;
 
 use crate::term;
 
@@ -128,7 +127,7 @@ impl fmt::Display for ProcessBuilder {
         }
 
         for arg in self.cmd.get_args() {
-            write!(f, " {}", escape(arg.to_string_lossy()))?;
+            write!(f, " {}", arg.to_string_lossy())?;
         }
 
         if !f.alternate() {
