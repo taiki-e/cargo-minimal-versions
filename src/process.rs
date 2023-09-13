@@ -7,17 +7,17 @@ use std::{
     str,
 };
 
-use anyhow::{Context as _, Result};
+use anyhow::{Context as _, Error, Result};
 
 use crate::term;
 
 macro_rules! cmd {
     ($program:expr $(, $arg:expr)* $(,)?) => {{
-        let mut _cmd = $crate::process::ProcessBuilder::new($program);
+        let mut _cmd = std::process::Command::new($program);
         $(
             _cmd.arg($arg);
         )*
-        _cmd
+        $crate::process::ProcessBuilder::from_std(_cmd)
     }};
 }
 
@@ -30,12 +30,8 @@ pub(crate) struct ProcessBuilder {
 }
 
 impl ProcessBuilder {
-    /// Creates a new `ProcessBuilder`.
-    pub(crate) fn new(program: impl AsRef<OsStr>) -> Self {
-        Self {
-            cmd: Command::new(program.as_ref()),
-            display_program_path: Cell::new(term::verbose()),
-        }
+    pub(crate) fn from_std(cmd: Command) -> Self {
+        Self { cmd, display_program_path: Cell::new(term::verbose()) }
     }
 
     /// Adds an argument to pass to the program.
@@ -60,18 +56,17 @@ impl ProcessBuilder {
     pub(crate) fn run(&mut self) -> Result<()> {
         let status = self.cmd.status().with_context(|| {
             self.display_all();
-            ProcessError::new(&format!("could not execute process {self}"), None, None)
+            process_error(format!("could not execute process {self}"), None, None)
         })?;
         if status.success() {
             Ok(())
         } else {
             self.display_all();
-            Err(ProcessError::new(
-                &format!("process didn't exit successfully: {self}"),
+            Err(process_error(
+                format!("process didn't exit successfully: {self}"),
                 Some(status),
                 None,
-            )
-            .into())
+            ))
         }
     }
 
@@ -80,18 +75,17 @@ impl ProcessBuilder {
     pub(crate) fn run_with_output(&mut self) -> Result<Output> {
         let output = self.cmd.output().with_context(|| {
             self.display_all();
-            ProcessError::new(&format!("could not execute process {self}"), None, None)
+            process_error(format!("could not execute process {self}"), None, None)
         })?;
         if output.status.success() {
             Ok(output)
         } else {
             self.display_all();
-            Err(ProcessError::new(
-                &format!("process didn't exit successfully: {self}"),
+            Err(process_error(
+                format!("process didn't exit successfully: {self}"),
                 Some(output.status),
                 Some(&output),
-            )
-            .into())
+            ))
         }
     }
 
@@ -139,49 +133,36 @@ impl fmt::Display for ProcessBuilder {
 }
 
 // Based on https://github.com/rust-lang/cargo/blob/0.47.0/src/cargo/util/errors.rs
-#[derive(Debug)]
-struct ProcessError {
-    /// A detailed description to show to the user why the process failed.
-    desc: String,
-}
-
-impl ProcessError {
-    /// Creates a new process error.
-    ///
-    /// `status` can be `None` if the process did not launch.
-    /// `output` can be `None` if the process did not launch, or output was not captured.
-    fn new(msg: &str, status: Option<ExitStatus>, output: Option<&Output>) -> Self {
-        let exit = match status {
-            Some(s) => s.to_string(),
-            None => "never executed".to_string(),
-        };
-        let mut desc = format!("{msg} ({exit})");
-
-        if let Some(out) = output {
-            match str::from_utf8(&out.stdout) {
-                Ok(s) if !s.trim().is_empty() => {
-                    desc.push_str("\n--- stdout\n");
-                    desc.push_str(s);
-                }
-                Ok(_) | Err(_) => {}
-            }
-            match str::from_utf8(&out.stderr) {
-                Ok(s) if !s.trim().is_empty() => {
-                    desc.push_str("\n--- stderr\n");
-                    desc.push_str(s);
-                }
-                Ok(_) | Err(_) => {}
-            }
+/// Creates a new process error.
+///
+/// `status` can be `None` if the process did not launch.
+/// `output` can be `None` if the process did not launch, or output was not captured.
+fn process_error(mut msg: String, status: Option<ExitStatus>, output: Option<&Output>) -> Error {
+    match status {
+        Some(s) => {
+            msg.push_str(" (");
+            msg.push_str(&s.to_string());
+            msg.push(')');
         }
-
-        Self { desc }
+        None => msg.push_str(" (never executed)"),
     }
-}
 
-impl fmt::Display for ProcessError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&self.desc, f)
+    if let Some(out) = output {
+        match str::from_utf8(&out.stdout) {
+            Ok(s) if !s.trim().is_empty() => {
+                msg.push_str("\n--- stdout\n");
+                msg.push_str(s);
+            }
+            Ok(_) | Err(_) => {}
+        }
+        match str::from_utf8(&out.stderr) {
+            Ok(s) if !s.trim().is_empty() => {
+                msg.push_str("\n--- stderr\n");
+                msg.push_str(s);
+            }
+            Ok(_) | Err(_) => {}
+        }
     }
-}
 
-impl std::error::Error for ProcessError {}
+    Error::msg(msg)
+}
