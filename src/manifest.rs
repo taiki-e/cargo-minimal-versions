@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 // Adapted from https://github.com/taiki-e/cargo-no-dev-deps
 
 use std::path::Path;

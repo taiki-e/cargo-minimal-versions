@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 use std::{env, ffi::OsString};
 
 use anyhow::{bail, format_err, Result};
