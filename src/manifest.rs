@@ -9,7 +9,7 @@ use anyhow::{bail, format_err, Context as _, Result};
 use crate::{
     cli::{Args, DetachPathDeps},
     fs,
-    metadata::Metadata,
+    metadata::{Metadata, PackageId},
     restore, term,
 };
 
@@ -63,29 +63,14 @@ impl Package {
     }
 }
 
-pub(crate) fn with(
+fn collect_manifests(
     metadata: &Metadata,
-    args: &Args,
-    no_dev_deps: bool,
-    f: impl FnOnce() -> Result<()>,
-) -> Result<()> {
-    // TODO: provide option to keep updated Cargo.lock
-    let restore_lockfile = true;
-    let no_private = args.no_private;
-    let restore = restore::Manager::new();
+    no_private: bool,
+) -> Result<(Vec<(&PackageId, Manifest)>, Vec<&Path>)> {
+    let mut manifests = Vec::with_capacity(metadata.workspace_members.len());
+    let mut private_crates = vec![];
     let workspace_root = &metadata.workspace_root;
     let root_manifest = &workspace_root.join("Cargo.toml");
-    let mut root_crate = None;
-    let mut private_crates = vec![];
-    let modify_deps = |doc: &mut toml_edit::Document, manifest_path: &Path| {
-        if term::verbose() {
-            info!("modifying from {}", manifest_path.display());
-        }
-        remove_dev_deps(doc);
-        if let Some(mode) = args.detach_path_deps {
-            detach_path_deps(doc, mode);
-        }
-    };
     for id in &metadata.workspace_members {
         let package = &metadata.packages[id];
         let manifest_path = &*package.manifest_path;
@@ -104,30 +89,95 @@ pub(crate) fn with(
                 bail!("--no-private is not supported yet with workspace with private root crate");
             }
             private_crates.push(manifest_path);
-        } else if is_root && no_private {
+            continue;
+        }
+        let manifest = match manifest {
+            Some(manifest) => manifest,
+            None => Manifest::new(manifest_path, metadata.cargo_version)?,
+        };
+        manifests.push((id, manifest));
+    }
+    Ok((manifests, private_crates))
+}
+
+pub(crate) fn with(
+    metadata: &Metadata,
+    args: &Args,
+    no_dev_deps: bool,
+    f: impl FnOnce(Vec<&PackageId>, bool) -> Result<()>,
+) -> Result<()> {
+    // TODO: provide option to keep updated Cargo.lock
+    let restore_lockfile = true;
+    let no_private = args.no_private;
+    let restore = restore::Manager::new();
+    let workspace_root = &metadata.workspace_root;
+    let root_manifest = &workspace_root.join("Cargo.toml");
+    let mut root_crate = None;
+    let (manifests, private_crates) = collect_manifests(metadata, no_private)?;
+    let detach_workspace = manifests.len() > 1;
+    let modify_deps = |doc: &mut toml_edit::Document, manifest_path: &Path| {
+        if term::verbose() {
+            info!("modifying from {}", manifest_path.display());
+        }
+        remove_dev_deps(doc);
+        if let Some(mode) = args.detach_path_deps {
+            detach_path_deps(doc, mode);
+        }
+    };
+    let mut ids = Vec::with_capacity(manifests.len());
+    for (id, manifest) in manifests {
+        ids.push(id);
+        let package = &metadata.packages[id];
+        let manifest_path = &*package.manifest_path;
+        let is_root = manifest_path == root_manifest;
+        if is_root && no_private {
             root_crate = Some(manifest);
             // This case is handled in the if block after loop.
         } else if no_dev_deps {
-            let manifest = match manifest {
-                Some(manifest) => manifest,
-                None => Manifest::new(manifest_path, metadata.cargo_version)?,
-            };
             let mut doc = manifest.doc;
             modify_deps(&mut doc, manifest_path);
-            restore.register(manifest.raw, manifest_path);
+            if detach_workspace {
+                if is_root {
+                    detach_workspace_members(&mut doc, workspace_root)?;
+                } else {
+                    to_workspace(&mut doc);
+                    let lockfile = &manifest_path.parent().unwrap().join("Cargo.lock");
+                    if lockfile.exists() {
+                        restore.register(fs::read(lockfile)?, lockfile);
+                    } else {
+                        restore.register_remove(lockfile);
+                    }
+                }
+            }
+            restore.register(manifest.raw.into_bytes(), manifest_path);
             fs::write(manifest_path, doc.to_string())?;
         } else if args.detach_path_deps.is_some() {
             bail!(
                 "--detach-path-deps is currently unsupported on subcommand that requires dev-dependencies: {}",
                 args.subcommand.as_str()
             );
+        } else if detach_workspace {
+            let mut doc = manifest.doc;
+            if is_root {
+                detach_workspace_members(&mut doc, workspace_root)?;
+            } else {
+                to_workspace(&mut doc);
+                let lockfile = &manifest_path.parent().unwrap().join("Cargo.lock");
+                if lockfile.exists() {
+                    restore.register(fs::read(lockfile)?, lockfile);
+                } else {
+                    restore.register_remove(lockfile);
+                }
+            }
+            restore.register(manifest.raw.into_bytes(), manifest_path);
+            fs::write(manifest_path, doc.to_string())?;
         }
     }
     let has_root_crate = root_crate.is_some();
     if no_private && (no_dev_deps && has_root_crate || !private_crates.is_empty()) {
         let manifest_path = root_manifest;
         let (mut doc, orig) = match root_crate {
-            Some(Some(manifest)) => (manifest.doc, manifest.raw),
+            Some(manifest) => (manifest.doc, manifest.raw),
             _ => {
                 let orig = fs::read_to_string(manifest_path)?;
                 (
@@ -141,23 +191,25 @@ pub(crate) fn with(
         if no_dev_deps && has_root_crate {
             modify_deps(&mut doc, manifest_path);
         }
-        if !private_crates.is_empty() {
+        if detach_workspace {
+            detach_workspace_members(&mut doc, workspace_root)?;
+        } else if !private_crates.is_empty() {
             if term::verbose() {
                 info!("removing private crates from {}", manifest_path.display());
             }
             remove_private_crates(&mut doc, workspace_root, &private_crates)?;
         }
-        restore.register(orig, manifest_path);
+        restore.register(orig.into_bytes(), manifest_path);
         fs::write(manifest_path, doc.to_string())?;
     }
     if restore_lockfile {
         let lockfile = &workspace_root.join("Cargo.lock");
         if lockfile.exists() {
-            restore.register(fs::read_to_string(lockfile)?, lockfile);
+            restore.register(fs::read(lockfile)?, lockfile);
         }
     }
 
-    f()?;
+    f(ids, detach_workspace)?;
 
     // Restore original Cargo.toml and Cargo.lock.
     restore.restore_all();
@@ -211,6 +263,36 @@ fn remove_private_crates(
         }
     }
     Ok(())
+}
+
+fn detach_workspace_members(doc: &mut toml_edit::Document, workspace_root: &Path) -> Result<()> {
+    let table = doc.as_table_mut();
+    if let Some(table) = table.get_mut("workspace").and_then(toml_edit::Item::as_table_like_mut) {
+        if let Some(members) = table.remove("members") {
+            if let Some(exclude) = table.get_mut("exclude").and_then(toml_edit::Item::as_array_mut)
+            {
+                if let Some(members) = members.as_array() {
+                    let root_manifest = &workspace_root.join("Cargo.toml");
+                    for member in members {
+                        if let Some(member) = member.as_str() {
+                            let p = workspace_root.join(member).join("Cargo.toml");
+                            if !same_file::is_same_file(p, root_manifest)? {
+                                exclude.push(member);
+                            }
+                        }
+                    }
+                }
+            } else {
+                table.insert("exclude", members);
+            }
+        }
+    }
+    Ok(())
+}
+
+fn to_workspace(doc: &mut toml_edit::Document) {
+    let table = doc.as_table_mut();
+    table.entry("workspace").or_insert_with(|| toml_edit::Item::Table(toml_edit::Table::default()));
 }
 
 fn detach_path_deps(doc: &mut toml_edit::Document, mode: DetachPathDeps) {
