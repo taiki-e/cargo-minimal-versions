@@ -6,7 +6,12 @@ use std::path::Path;
 
 use anyhow::{bail, format_err, Context as _, Result};
 
-use crate::{fs, metadata::Metadata, restore, term};
+use crate::{
+    cli::{Args, DetachPathDeps},
+    fs,
+    metadata::Metadata,
+    restore, term,
+};
 
 type ParseResult<T> = Result<T, &'static str>;
 
@@ -60,16 +65,27 @@ impl Package {
 
 pub(crate) fn with(
     metadata: &Metadata,
+    args: &Args,
     no_dev_deps: bool,
-    no_private: bool,
-    restore_lockfile: bool,
     f: impl FnOnce() -> Result<()>,
 ) -> Result<()> {
+    // TODO: provide option to keep updated Cargo.lock
+    let restore_lockfile = true;
+    let no_private = args.no_private;
     let restore = restore::Manager::new();
     let workspace_root = &metadata.workspace_root;
     let root_manifest = &workspace_root.join("Cargo.toml");
     let mut root_crate = None;
     let mut private_crates = vec![];
+    let modify_deps = |doc: &mut toml_edit::Document, manifest_path: &Path| {
+        if term::verbose() {
+            info!("modifying from {}", manifest_path.display());
+        }
+        remove_dev_deps(doc);
+        if let Some(mode) = args.detach_path_deps {
+            detach_path_deps(doc, mode);
+        }
+    };
     for id in &metadata.workspace_members {
         let package = &metadata.packages[id];
         let manifest_path = &*package.manifest_path;
@@ -97,12 +113,14 @@ pub(crate) fn with(
                 None => Manifest::new(manifest_path, metadata.cargo_version)?,
             };
             let mut doc = manifest.doc;
-            if term::verbose() {
-                info!("removing dev-dependencies from {}", manifest_path.display());
-            }
-            remove_dev_deps(&mut doc);
+            modify_deps(&mut doc, manifest_path);
             restore.register(manifest.raw, manifest_path);
             fs::write(manifest_path, doc.to_string())?;
+        } else if args.detach_path_deps.is_some() {
+            bail!(
+                "--detach-path-deps is currently unsupported on subcommand that requires dev-dependencies: {}",
+                args.subcommand.as_str()
+            );
         }
     }
     let has_root_crate = root_crate.is_some();
@@ -121,10 +139,7 @@ pub(crate) fn with(
             }
         };
         if no_dev_deps && has_root_crate {
-            if term::verbose() {
-                info!("removing dev-dependencies from {}", manifest_path.display());
-            }
-            remove_dev_deps(&mut doc);
+            modify_deps(&mut doc, manifest_path);
         }
         if !private_crates.is_empty() {
             if term::verbose() {
@@ -198,66 +213,125 @@ fn remove_private_crates(
     Ok(())
 }
 
+fn detach_path_deps(doc: &mut toml_edit::Document, mode: DetachPathDeps) {
+    // --detach-path-deps is currently only supported for subcommands that call remove_dev_deps.
+    const KIND: &[&str] = &["build-dependencies", "dependencies"];
+    fn remove_path(deps: &mut toml_edit::Item, mode: DetachPathDeps) {
+        if let Some(deps) = deps.as_table_like_mut() {
+            for (_name, dep) in deps.iter_mut() {
+                if let Some(dep) = dep.as_table_like_mut() {
+                    if let Some(req) = dep.get("version") {
+                        if mode == DetachPathDeps::SkipExact {
+                            if let Some(req) =
+                                req.as_str().and_then(|s| semver::VersionReq::parse(s).ok())
+                            {
+                                if req.comparators.len() == 1 {
+                                    let req = req.comparators.first().unwrap();
+                                    if req.op == semver::Op::Exact
+                                        && req.patch.is_some()
+                                        // TODO
+                                        && req.pre.is_empty()
+                                    {
+                                        continue;
+                                    }
+                                }
+                            }
+                        }
+                        dep.remove("path");
+                    } else if dep.get("git").is_some() {
+                        dep.remove("path");
+                    } else {
+                        // Do not remove path deps in this case. When removed,
+                        // we will got "dependency specified without providing
+                        // a local path, Git repository, or version to use" warning.
+                    }
+                }
+            }
+        }
+    }
+    for key in KIND {
+        if let Some(deps) = doc.get_mut(key) {
+            remove_path(deps, mode);
+        }
+    }
+    if let Some(table) = doc.get_mut("target").and_then(toml_edit::Item::as_table_like_mut) {
+        for (_key, val) in table.iter_mut() {
+            if let Some(table) = val.as_table_like_mut() {
+                for key in KIND {
+                    if let Some(deps) = table.get_mut(key) {
+                        remove_path(deps, mode);
+                    }
+                }
+            }
+        }
+    }
+    // [workspace.dependencies]
+    if let Some(table) = doc.get_mut("workspace").and_then(toml_edit::Item::as_table_like_mut) {
+        if let Some(deps) = table.get_mut("dependencies") {
+            remove_path(deps, mode);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::remove_dev_deps;
+    mod remove_dev_deps {
+        macro_rules! test {
+            ($name:ident, $input:expr, $expected:expr) => {
+                #[test]
+                fn $name() {
+                    let mut doc: toml_edit::Document = $input.parse().unwrap();
+                    super::super::remove_dev_deps(&mut doc);
+                    assert_eq!($expected, doc.to_string());
+                }
+            };
+        }
 
-    macro_rules! test {
-        ($name:ident, $input:expr, $expected:expr) => {
-            #[test]
-            fn $name() {
-                let mut doc: toml_edit::Document = $input.parse().unwrap();
-                remove_dev_deps(&mut doc);
-                assert_eq!($expected, doc.to_string());
-            }
-        };
-    }
-
-    test!(
-        a,
-        "\
+        test!(
+            a,
+            "\
 [package]
 [dependencies]
 [[example]]
 [dev-dependencies.serde]
 [dev-dependencies]",
-        "\
+            "\
 [package]
 [dependencies]
 [[example]]
 "
-    );
+        );
 
-    test!(
-        b,
-        "\
+        test!(
+            b,
+            "\
 [package]
 [dependencies]
 [[example]]
 [dev-dependencies.serde]
 [dev-dependencies]
 ",
-        "\
+            "\
 [package]
 [dependencies]
 [[example]]
 "
-    );
+        );
 
-    test!(
-        c,
-        "\
+        test!(
+            c,
+            "\
 [dev-dependencies]
 foo = { features = [] }
 bar = \"0.1\"
 ",
-        "\
+            "\
          "
-    );
+        );
 
-    test!(
-        d,
-        "\
+        test!(
+            d,
+            "\
 [dev-dependencies.foo]
 features = []
 
@@ -267,15 +341,15 @@ bar = { features = [], a = [] }
 [dependencies]
 bar = { features = [], a = [] }
 ",
-        "
+            "
 [dependencies]
 bar = { features = [], a = [] }
 "
-    );
+        );
 
-    test!(
-        many_lines,
-        "\
+        test!(
+            many_lines,
+            "\
 [package]\n\n
 
 [dev-dependencies.serde]
@@ -283,30 +357,30 @@ bar = { features = [], a = [] }
 
 [dev-dependencies]
 ",
-        "\
+            "\
 [package]
 "
-    );
+        );
 
-    test!(
-        target_deps1,
-        "\
+        test!(
+            target_deps1,
+            "\
 [package]
 
 [target.'cfg(unix)'.dev-dependencies]
 
 [dependencies]
 ",
-        "\
+            "\
 [package]
 
 [dependencies]
 "
-    );
+        );
 
-    test!(
-        target_deps2,
-        "\
+        test!(
+            target_deps2,
+            "\
 [package]
 
 [target.'cfg(unix)'.dev-dependencies]
@@ -320,57 +394,199 @@ foo = \"0.1\"
 [target.'cfg(unix)'.dependencies]
 foo = \"0.1\"
 ",
-        "\
+            "\
 [package]
 
 [target.'cfg(unix)'.dependencies]
 foo = \"0.1\"
 "
-    );
+        );
 
-    test!(
-        target_deps3,
-        "\
+        test!(
+            target_deps3,
+            "\
 [package]
 
 [target.'cfg(unix)'.dependencies]
 
 [dev-dependencies]
 ",
-        "\
+            "\
 [package]
 
 [target.'cfg(unix)'.dependencies]
 "
-    );
+        );
 
-    test!(
-        target_deps4,
-        "\
+        test!(
+            target_deps4,
+            "\
 [package]
 
 [target.'cfg(unix)'.dev-dependencies]
 ",
-        "\
+            "\
 [package]
 "
-    );
+        );
 
-    test!(
-        not_table_multi_line,
-        "\
+        test!(
+            not_table_multi_line,
+            "\
 [package]
 foo = [
     ['dev-dependencies'],
     [\"dev-dependencies\"]
 ]
 ",
-        "\
+            "\
 [package]
 foo = [
     ['dev-dependencies'],
     [\"dev-dependencies\"]
 ]
 "
-    );
+        );
+    }
+
+    mod detach_path_deps {
+        macro_rules! test {
+            ($name:ident, $mode:ident, $input:expr, $expected:expr) => {
+                #[test]
+                fn $name() {
+                    let mut doc = $input.parse().unwrap();
+                    super::super::detach_path_deps(&mut doc, crate::cli::DetachPathDeps::$mode);
+                    assert_eq!($expected, doc.to_string());
+                }
+            };
+        }
+
+        test!(
+            deps,
+            All,
+            "\
+[dependencies]
+a = { version = '1', path = 'p' }
+g = { path = 'p' }
+h = { version = '=1', path = 'p' }
+i = { version = '=1.2', path = 'p' }
+j = { version = '=1.2.3', path = 'p' }
+k = { version = '=1.2.3-alpha', path = 'p' }
+l = { version = '=1.2.3-alpha.1', path = 'p' }
+[build-dependencies]
+b = { path = 'p', version = '1' }
+[dev-dependencies]
+c = { path = 'p', version = '1' }
+[dependencies.d]
+path = 'p'
+version = '1'
+[build-dependencies.e]
+version = '1'
+path = 'p'
+[dev-dependencies.f]
+version = '1'
+path = 'p'
+",
+            "\
+[dependencies]
+a = { version = '1'}
+g = { path = 'p' }
+h = { version = '=1'}
+i = { version = '=1.2'}
+j = { version = '=1.2.3'}
+k = { version = '=1.2.3-alpha'}
+l = { version = '=1.2.3-alpha.1'}
+[build-dependencies]
+b = { version = '1' }
+[dev-dependencies]
+c = { path = 'p', version = '1' }
+[dependencies.d]
+version = '1'
+[build-dependencies.e]
+version = '1'
+[dev-dependencies.f]
+version = '1'
+path = 'p'
+"
+        );
+
+        test!(
+            target_deps,
+            SkipExact,
+            "\
+[target.a.dependencies]
+a = { version = '1', path = 'p' }
+g = { path = 'p' }
+h = { version = '=1', path = 'p' }
+i = { version = '=1.2', path = 'p' }
+j = { version = '=1.2.3', path = 'p' }
+k = { version = '=1.2.3-alpha', path = 'p' }
+l = { version = '=1.2.3-alpha.1', path = 'p' }
+[target.b.build-dependencies]
+b = { path = 'p', version = '1' }
+[target.c.dev-dependencies]
+c = { path = 'p', version = '1' }
+[target.c.dependencies.d]
+path = 'p'
+version = '1'
+[target.b.build-dependencies.e]
+version = '1'
+path = 'p'
+[target.a.dev-dependencies.f]
+version = '1'
+path = 'p'
+",
+            "\
+[target.a.dependencies]
+a = { version = '1'}
+g = { path = 'p' }
+h = { version = '=1'}
+i = { version = '=1.2'}
+j = { version = '=1.2.3', path = 'p' }
+k = { version = '=1.2.3-alpha'}
+l = { version = '=1.2.3-alpha.1'}
+[target.b.build-dependencies]
+b = { version = '1' }
+[target.c.dev-dependencies]
+c = { path = 'p', version = '1' }
+[target.c.dependencies.d]
+version = '1'
+[target.b.build-dependencies.e]
+version = '1'
+[target.a.dev-dependencies.f]
+version = '1'
+path = 'p'
+"
+        );
+
+        test!(
+            workspace_deps,
+            All,
+            "\
+[workspace.dependencies]
+a = { version = '1', path = 'p' }
+g = { path = 'p' }
+h = { version = '=1', path = 'p' }
+i = { version = '=1.2', path = 'p' }
+j = { version = '=1.2.3', path = 'p' }
+k = { version = '=1.2.3-alpha', path = 'p' }
+l = { version = '=1.2.3-alpha.1', path = 'p' }
+[workspace.dependencies.d]
+path = 'p'
+version = '1'
+",
+            "\
+[workspace.dependencies]
+a = { version = '1'}
+g = { path = 'p' }
+h = { version = '=1'}
+i = { version = '=1.2'}
+j = { version = '=1.2.3'}
+k = { version = '=1.2.3-alpha'}
+l = { version = '=1.2.3-alpha.1'}
+[workspace.dependencies.d]
+version = '1'
+"
+        );
+    }
 }
