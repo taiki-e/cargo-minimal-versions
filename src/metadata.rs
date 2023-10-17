@@ -30,6 +30,7 @@ pub(crate) struct Metadata {
     pub(crate) packages: HashMap<PackageId, Package>,
     /// List of members of the workspace.
     pub(crate) workspace_members: Vec<PackageId>,
+    pub(crate) target_directory: PathBuf,
     /// The absolute path to the root of the workspace.
     pub(crate) workspace_root: PathBuf,
 }
@@ -67,6 +68,7 @@ impl Metadata {
                 .map(|v| Package::from_value(v, cargo_version))
                 .collect::<Result<_, _>>()?,
             workspace_members,
+            target_directory: map.remove_string("target_directory")?,
             workspace_root: map.remove_string("workspace_root")?,
         })
     }
