@@ -75,7 +75,7 @@ In addition, due to cargo's feature integration, it is not correct to run `cargo
 
 cargo-minimal-versions addresses most of these issues and makes it easy to run cargo commands with `-Z minimal-versions`.
 
-See [#1](https://github.com/taiki-e/cargo-minimal-versions/issues/1) for the remaining problem.
+See [#1](https://github.com/taiki-e/cargo-minimal-versions/issues/1) and [#6](https://github.com/taiki-e/cargo-minimal-versions/issues/6) for the remaining problems.
 
 ## Installation
 
