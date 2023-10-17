@@ -17,6 +17,7 @@ build.allow-build-scripts = [
     { name = "anyhow" },
     { name = "libc" },                         # via ctrlc & is-terminal
     { name = "rustix" },                       # via is-terminal
+    { name = "semver" },
     { name = "serde_json" },
     { name = "serde" },
     { name = "winapi-i686-pc-windows-gnu" },   # via same-file & termcolor

@@ -50,9 +50,7 @@ fn try_main() -> Result<()> {
                 a.starts_with("--example=") || a.starts_with("--test=") || a.starts_with("--bench=")
             }
         });
-    // TODO: provide option to keep updated Cargo.lock
-    let restore_lockfile = true;
-    manifest::with(&ws.metadata, remove_dev_deps, args.no_private, restore_lockfile, || {
+    manifest::with(&ws.metadata, &args, remove_dev_deps, || {
         // Update Cargo.lock to minimal version dependencies.
         let mut cargo = ws.cargo_nightly();
         cargo.args(["update", "-Z", "minimal-versions"]);
@@ -62,10 +60,10 @@ fn try_main() -> Result<()> {
         let mut cargo = ws.cargo();
         // TODO: Provide a way to do this without using cargo-hack.
         cargo.arg("hack");
-        cargo.args(args.cargo_args);
+        cargo.args(&args.cargo_args);
         if !args.rest.is_empty() {
             cargo.arg("--");
-            cargo.args(args.rest);
+            cargo.args(&args.rest);
         }
         info!("running {cargo}");
         cargo.run()

@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Add `--detach-path-deps` flag to run minimal versions check with `path` fields removed from dependencies. ([#4](https://github.com/taiki-e/cargo-minimal-versions/pull/4))
+
 ## [0.1.19] - 2023-09-11
 
 - Remove dependency on `slab`, `shell-escape`, and `fs-err`.

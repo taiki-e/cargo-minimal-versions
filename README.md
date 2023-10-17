@@ -51,6 +51,18 @@ Normally, crates with `publish = false` do not need minimal versions check. You 
 cargo minimal-versions check --workspace --ignore-private
 ```
 
+If path dependencies exist, the above ways may miss the problem when you publish the crate (e.g., [tokio-rs/tokio#4376], [tokio-rs/tokio#4490]) <br>
+By using `--detach-path-deps` flag, you can run minimal versions check with `path` fields removed from dependencies.
+
+```sh
+cargo minimal-versions check --workspace --ignore-private --detach-path-deps
+```
+
+`--detach-path-deps` flag removes all[^1] path fields by default.
+By using `--detach-path-deps=skip-exact` flag, you can skip the removal of path fields in dependencies with exact version requirements (`"=<version>"`). For example, this is useful for [a pair of a proc-macro and a library that export it](https://github.com/taiki-e/pin-project/blob/df5ed4369e2c34d2111b71ef2fdd6b3621c55fa3/Cargo.toml#L32).
+
+[^1]: To exactly, when neither version, git, nor path is specified, an error will occur, so we will remove the path field of all of dependencies for which the version or git URL is specified.
+
 ## Details
 
 Using `-Z minimal-versions` in the usual way will not work properly in many cases. [To use `cargo check` with `-Z minimal-versions` properly, you need to run at least three processes.](https://github.com/tokio-rs/tokio/pull/3131#discussion_r521621961)
@@ -157,6 +169,8 @@ cargo binstall cargo-minimal-versions
 [cargo-hack]: https://github.com/taiki-e/cargo-hack
 [cargo-llvm-cov]: https://github.com/taiki-e/cargo-llvm-cov
 [cargo#5657]: https://github.com/rust-lang/cargo/issues/5657
+[tokio-rs/tokio#4376]: https://github.com/tokio-rs/tokio/pull/4376
+[tokio-rs/tokio#4490]: https://github.com/tokio-rs/tokio/pull/4490
 
 ## License
 

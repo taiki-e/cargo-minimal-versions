@@ -25,35 +25,47 @@ pub(crate) struct Args {
     pub(crate) no_private: bool,
     pub(crate) subcommand: Subcommand,
     pub(crate) manifest_path: Option<String>,
+    pub(crate) detach_path_deps: Option<DetachPathDeps>,
     pub(crate) cargo_args: Vec<String>,
     pub(crate) rest: Vec<String>,
 }
 
-#[derive(PartialEq)]
 pub(crate) enum Subcommand {
-    // build, check, run
-    Builtin,
+    // build, check, run, clippy
+    Builtin(String),
     // test, bench
-    BuiltinDev,
-    Other,
+    BuiltinDev(String),
+    Other(String),
 }
 
 impl Subcommand {
     fn new(s: &str) -> Self {
         // https://github.com/rust-lang/cargo/blob/0.62.0/src/bin/cargo/main.rs#L48-L56
         match s {
-            "b" | "build" | "c" | "check" | "r" | "run" => Self::Builtin,
-            "t" | "test" | "bench" => Self::BuiltinDev,
+            "b" | "build" | "c" | "check" | "r" | "run" | "clippy" => Self::Builtin(s.to_owned()),
+            "t" | "test" | "bench" => Self::BuiltinDev(s.to_owned()),
             _ => {
-                warn!("unrecognized subcommand '{s}'");
-                Self::Other
+                warn!("unrecognized subcommand '{s}'; minimal-versions check may not work as expected");
+                Self::Other(s.to_owned())
             }
         }
     }
 
     pub(crate) fn always_needs_dev_deps(&self) -> bool {
-        *self == Self::BuiltinDev
+        matches!(self, Self::BuiltinDev(..))
     }
+
+    pub(crate) fn as_str(&self) -> &str {
+        match self {
+            Self::Builtin(s) | Self::BuiltinDev(s) | Self::Other(s) => s,
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub(crate) enum DetachPathDeps {
+    All,
+    SkipExact,
 }
 
 impl Args {
@@ -94,6 +106,7 @@ impl Args {
         let mut color = None;
         let mut manifest_path: Option<String> = None;
         let mut verbose = 0;
+        let mut detach_path_deps = None;
 
         let mut no_private = false;
 
@@ -120,6 +133,20 @@ impl Args {
                 Long("color") => parse_opt!(color),
                 Long("manifest-path") => parse_opt!(manifest_path),
                 Short('v') | Long("verbose") => verbose += 1,
+                Long("detach-path-deps") => {
+                    if let Some(val) = parser.optional_value() {
+                        if val == "all" {
+                            detach_path_deps = Some(DetachPathDeps::All);
+                        } else if val == "skip-exact" {
+                            detach_path_deps = Some(DetachPathDeps::SkipExact);
+                        } else {
+                            bail!("unrecognized value for --detach-path-deps, must be all or skip-exact: {val:?}");
+                        }
+                    } else {
+                        // TODO: Is this a reasonable default?
+                        detach_path_deps = Some(DetachPathDeps::All);
+                    }
+                }
 
                 // cargo-hack flags
                 // However, do not propagate to cargo-hack, as the same process
@@ -185,7 +212,7 @@ impl Args {
             cargo_args.push(path.clone());
         }
 
-        Ok(Self { no_private, subcommand, manifest_path, cargo_args, rest })
+        Ok(Self { no_private, subcommand, manifest_path, detach_path_deps, cargo_args, rest })
     }
 }
 
