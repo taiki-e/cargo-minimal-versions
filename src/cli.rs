@@ -25,6 +25,8 @@ pub(crate) struct Args {
     pub(crate) no_private: bool,
     pub(crate) subcommand: Subcommand,
     pub(crate) manifest_path: Option<String>,
+    pub(crate) workspace: bool,
+    pub(crate) target_dir: Option<String>,
     pub(crate) detach_path_deps: Option<DetachPathDeps>,
     pub(crate) cargo_args: Vec<String>,
     pub(crate) rest: Vec<String>,
@@ -105,7 +107,9 @@ impl Args {
         let mut subcommand = None;
         let mut color = None;
         let mut manifest_path: Option<String> = None;
+        let mut target_dir: Option<String> = None;
         let mut verbose = 0;
+        let mut workspace = false;
         let mut detach_path_deps = None;
 
         let mut no_private = false;
@@ -132,7 +136,9 @@ impl Args {
             match arg {
                 Long("color") => parse_opt!(color),
                 Long("manifest-path") => parse_opt!(manifest_path),
+                Long("target-dir") => parse_opt!(target_dir),
                 Short('v') | Long("verbose") => verbose += 1,
+                Long("workspace" | "all") => workspace = true,
                 Long("detach-path-deps") => {
                     if let Some(val) = parser.optional_value() {
                         if val == "all" {
@@ -212,7 +218,16 @@ impl Args {
             cargo_args.push(path.clone());
         }
 
-        Ok(Self { no_private, subcommand, manifest_path, detach_path_deps, cargo_args, rest })
+        Ok(Self {
+            no_private,
+            subcommand,
+            manifest_path,
+            workspace,
+            target_dir,
+            detach_path_deps,
+            cargo_args,
+            rest,
+        })
     }
 }
 
