@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.20] - 2023-10-22
+
 - Add `--detach-path-deps` flag to run minimal versions check with `path` fields removed from dependencies. ([#4](https://github.com/taiki-e/cargo-minimal-versions/pull/4))
 
 ## [0.1.19] - 2023-09-11
@@ -111,7 +113,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.19...HEAD
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.20...HEAD
+[0.1.20]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.19...v0.1.20
 [0.1.19]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.18...v0.1.19
 [0.1.18]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.17...v0.1.18
 [0.1.17]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.16...v0.1.17
