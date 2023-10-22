@@ -58,7 +58,7 @@ By using `--detach-path-deps` flag, you can run minimal versions check with `pat
 cargo minimal-versions check --workspace --ignore-private --detach-path-deps
 ```
 
-`--detach-path-deps` flag removes all[^1] path fields by default.
+`--detach-path-deps` (`--detach-path-deps=all`) flag removes all[^1] path fields by default.
 By using `--detach-path-deps=skip-exact` flag, you can skip the removal of path fields in dependencies with exact version requirements (`"=<version>"`). For example, this is useful for [a pair of a proc-macro and a library that export it](https://github.com/taiki-e/pin-project/blob/df5ed4369e2c34d2111b71ef2fdd6b3621c55fa3/Cargo.toml#L32).
 
 [^1]: To exactly, when neither version, git, nor path is specified, an error will occur, so we will remove the path field of all of dependencies for which the version or git URL is specified.
