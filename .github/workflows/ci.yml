@@ -69,11 +69,11 @@ jobs:
         if: startsWith(matrix.os, 'windows')
       - run: cargo test --workspace --all-features
       - run: cargo hack build --workspace --no-private --feature-powerset --no-dev-deps
-      - run: cargo minimal-versions build --workspace --no-private --all-features
+      - run: cargo minimal-versions build --workspace --no-private --detach-path-deps=skip-exact --all-features
         if: startsWith(matrix.rust, 'nightly')
       - run: cargo install -f --path . --debug
-      - run: cargo minimal-versions check --workspace --no-private --all-features -v
-      - run: cargo minimal-versions build --workspace --no-private --all-features -v
+      - run: cargo minimal-versions check --workspace --no-private --detach-path-deps=skip-exact --all-features -v
+      - run: cargo minimal-versions build --workspace --no-private --detach-path-deps=skip-exact --all-features -v
       - run: cargo minimal-versions test --workspace --all-features -v
       - run: |
           set -eEuxo pipefail
@@ -100,8 +100,8 @@ jobs:
       - run: echo "RUSTC_BOOTSTRAP=1" >>"${GITHUB_ENV}"
       - run: cargo test --workspace --all-features
       - run: cargo install -f --path . --debug
-      - run: cargo minimal-versions check --workspace --no-private --all-features -v
-      - run: cargo minimal-versions build --workspace --no-private --all-features -v
+      - run: cargo minimal-versions check --workspace --no-private --detach-path-deps=skip-exact --all-features -v
+      - run: cargo minimal-versions build --workspace --no-private --detach-path-deps=skip-exact --all-features -v
       - run: cargo minimal-versions test --workspace --all-features -v
 
   miri:
