@@ -2,7 +2,7 @@
 name = "cargo-minimal-versions"
 version = "0.1.20"
 edition = "2021"
-rust-version = "1.66"
+rust-version = "1.67"
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/taiki-e/cargo-minimal-versions"
 keywords = ["cargo", "subcommand", "testing"]
