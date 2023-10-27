@@ -4,7 +4,7 @@
 [![license](https://img.shields.io/badge/license-Apache--2.0_OR_MIT-blue?style=flat-square)](#license)
 [![build status](https://img.shields.io/github/actions/workflow/status/taiki-e/cargo-minimal-versions/ci.yml?branch=main&style=flat-square&logo=github)](https://github.com/taiki-e/cargo-minimal-versions/actions)
 
-Cargo subcommand for proper use of [`-Z minimal-versions`][cargo#5657].
+Cargo subcommand for proper use of [`-Z minimal-versions`][cargo#5657] and [`-Z direct-minimal-versions`][direct-minimal-versions].
 
 - [Usage](#usage)
 - [Details](#details)
@@ -22,7 +22,7 @@ Cargo subcommand for proper use of [`-Z minimal-versions`][cargo#5657].
 $ cargo minimal-versions --help
 cargo-minimal-versions
 
-Cargo subcommand for proper use of -Z minimal-versions.
+Cargo subcommand for proper use of -Z minimal-versions and -Z direct-minimal-versions.
 
 USAGE:
     cargo minimal-versions <CARGO_SUBCOMMAND> [OPTIONS] [CARGO_OPTIONS]
@@ -63,6 +63,18 @@ By using `--detach-path-deps=skip-exact` flag, you can skip the removal of path 
 
 [^1]: To exactly, when neither version, git, nor path is specified, an error will occur, so we will remove the path field of all of dependencies for which the version or git URL is specified.
 
+### --direct (-Z direct-minimal-versions)
+
+If there are dependencies that are incompatible with `-Z minimum-versions`, it is also reasonable to use [`-Z direct-minimal-versions`][direct-minimal-versions], since it is hard to maintain `-Z minimum-versions` compatibility in such situations.
+
+By using `--direct` flag, cargo-minimal-versions uses `-Z direct-minimal-versions` instead of `-Z minimal-versions`.
+
+```sh
+cargo minimal-versions check --direct
+```
+
+Note that using `-Z direct-minimal-versions` may miss some of the problems that can be found when using `-Z minimal-versions`. However, if there is a problem only in a particular version of a dependency, a problem that was missed when using `-Z minimal-versions` may be found by using `-Z direct-minimal-versions` (because the resolved dependency version is different).
+
 ## Details
 
 Using `-Z minimal-versions` in the usual way will not work properly in many cases. [To use `cargo check` with `-Z minimal-versions` properly, you need to run at least three processes.](https://github.com/tokio-rs/tokio/pull/3131#discussion_r521621961)
@@ -83,7 +95,7 @@ See [#1](https://github.com/taiki-e/cargo-minimal-versions/issues/1) and [#6](ht
 ### Prerequisites
 
 cargo-minimal-versions requires nightly
-toolchain (to run `cargo update -Z minimal-versions`) and [cargo-hack] (to run `cargo check` & `cargo build` proper):
+toolchain (to run `cargo update -Z minimal-versions` or `cargo update -Z direct-minimal-versions`) and [cargo-hack] (to run `cargo check` & `cargo build` proper):
 
 ```sh
 rustup toolchain add nightly
@@ -169,6 +181,7 @@ cargo binstall cargo-minimal-versions
 [cargo-hack]: https://github.com/taiki-e/cargo-hack
 [cargo-llvm-cov]: https://github.com/taiki-e/cargo-llvm-cov
 [cargo#5657]: https://github.com/rust-lang/cargo/issues/5657
+[direct-minimal-versions]: https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#direct-minimal-versions
 [tokio-rs/tokio#4376]: https://github.com/tokio-rs/tokio/pull/4376
 [tokio-rs/tokio#4490]: https://github.com/tokio-rs/tokio/pull/4490
 

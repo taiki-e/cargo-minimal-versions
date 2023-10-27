@@ -11,7 +11,7 @@ use lexopt::{
 use crate::term;
 
 static USAGE: &str = "cargo-minimal-versions\n
-Cargo subcommand for proper use of -Z minimal-versions.
+Cargo subcommand for proper use of -Z minimal-versions and -Z direct-minimal-versions.
 \nUSAGE:
     cargo minimal-versions <CARGO_SUBCOMMAND> [OPTIONS] [CARGO_OPTIONS]
 \nCARGO_SUBCOMMANDS:
@@ -23,6 +23,7 @@ Cargo subcommand for proper use of -Z minimal-versions.
 
 pub(crate) struct Args {
     pub(crate) no_private: bool,
+    pub(crate) direct: bool,
     pub(crate) subcommand: Subcommand,
     pub(crate) manifest_path: Option<String>,
     pub(crate) detach_path_deps: Option<DetachPathDeps>,
@@ -108,6 +109,7 @@ impl Args {
         let mut verbose = 0;
         let mut detach_path_deps = None;
 
+        let mut direct = false;
         let mut no_private = false;
 
         let mut parser = lexopt::Parser::from_args(args);
@@ -147,6 +149,8 @@ impl Args {
                         detach_path_deps = Some(DetachPathDeps::All);
                     }
                 }
+
+                Long("direct") => parse_flag!(direct),
 
                 // cargo-hack flags
                 // However, do not propagate to cargo-hack, as the same process
@@ -212,7 +216,15 @@ impl Args {
             cargo_args.push(path.clone());
         }
 
-        Ok(Self { no_private, subcommand, manifest_path, detach_path_deps, cargo_args, rest })
+        Ok(Self {
+            no_private,
+            direct,
+            subcommand,
+            manifest_path,
+            detach_path_deps,
+            cargo_args,
+            rest,
+        })
     }
 }
 
