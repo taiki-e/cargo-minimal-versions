@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Add `--direct` flag to use [`-Z direct-minimal-versions`](https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#direct-minimal-versions) instead of `-Z minimal-versions`. ([#25](https://github.com/taiki-e/cargo-minimal-versions/pull/25))
+
 ## [0.1.20] - 2023-10-22
 
 - Add `--detach-path-deps` flag to run minimal versions check with `path` fields removed from dependencies. ([#4](https://github.com/taiki-e/cargo-minimal-versions/pull/4))
