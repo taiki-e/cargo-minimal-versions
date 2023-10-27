@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.21] - 2023-10-27
+
 - Add `--direct` flag to use [`-Z direct-minimal-versions`](https://doc.rust-lang.org/nightly/cargo/reference/unstable.html#direct-minimal-versions) instead of `-Z minimal-versions`. ([#25](https://github.com/taiki-e/cargo-minimal-versions/pull/25))
 
 ## [0.1.20] - 2023-10-22
@@ -115,7 +117,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.20...HEAD
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.21...HEAD
+[0.1.21]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.20...v0.1.21
 [0.1.20]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.19...v0.1.20
 [0.1.19]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.18...v0.1.19
 [0.1.18]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.17...v0.1.18
