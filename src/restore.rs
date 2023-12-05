@@ -20,7 +20,7 @@ pub(crate) struct Manager {
 
 impl Manager {
     pub(crate) fn new() -> Self {
-        let this = Self { files: Arc::new(Mutex::new(Vec::new())) };
+        let this = Self { files: Arc::new(Mutex::new(vec![])) };
 
         let cloned = this.clone();
         ctrlc::set_handler(move || {
