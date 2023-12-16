@@ -1,3 +1,2 @@
 binstall
-rustix
 winapi

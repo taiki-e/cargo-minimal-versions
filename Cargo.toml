@@ -23,7 +23,6 @@ pkg-fmt = "tgz"
 [dependencies]
 anyhow = "1.0.47"
 ctrlc = { version = "3.1.4", features = ["termination"] }
-is-terminal = "0.4.2"
 lexopt = "0.3"
 same-file = "1.0.1"
 semver = "1"
