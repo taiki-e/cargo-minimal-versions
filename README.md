@@ -2,7 +2,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/cargo-minimal-versions?style=flat-square&logo=rust)](https://crates.io/crates/cargo-minimal-versions)
 [![license](https://img.shields.io/badge/license-Apache--2.0_OR_MIT-blue?style=flat-square)](#license)
-[![build status](https://img.shields.io/github/actions/workflow/status/taiki-e/cargo-minimal-versions/ci.yml?branch=main&style=flat-square&logo=github)](https://github.com/taiki-e/cargo-minimal-versions/actions)
+[![github actions](https://img.shields.io/github/actions/workflow/status/taiki-e/cargo-minimal-versions/ci.yml?branch=main&style=flat-square&logo=github)](https://github.com/taiki-e/cargo-minimal-versions/actions)
 
 Cargo subcommand for proper use of [`-Z minimal-versions`][cargo#5657] and [`-Z direct-minimal-versions`][direct-minimal-versions].
 
