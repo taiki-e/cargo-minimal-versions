@@ -70,7 +70,7 @@ jobs:
       - run: cargo test --workspace --all-features
       - run: cargo hack build --workspace --no-private --feature-powerset --no-dev-deps
       - run: cargo minimal-versions build --workspace --no-private --detach-path-deps=skip-exact --all-features
-        if: startsWith(matrix.rust, 'nightly')
+      - run: cargo minimal-versions build --workspace --no-private --detach-path-deps=skip-exact --all-features --direct
       - run: cargo install -f --path . --debug
       - run: cargo minimal-versions check --workspace --no-private --detach-path-deps=skip-exact --all-features -v
       - run: cargo minimal-versions build --workspace --no-private --detach-path-deps=skip-exact --all-features -v
