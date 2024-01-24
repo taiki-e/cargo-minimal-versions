@@ -19,8 +19,8 @@ type ParseResult<T> = Result<T, &'static str>;
 // Cargo manifest
 // https://doc.rust-lang.org/nightly/cargo/reference/manifest.html
 pub(crate) struct Manifest {
-    pub(crate) raw: String,
-    pub(crate) doc: toml_edit::Document,
+    raw: String,
+    doc: toml_edit::Document,
     pub(crate) package: Package,
 }
 
