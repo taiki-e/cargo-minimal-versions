@@ -2,7 +2,7 @@
 
 // Adapted from https://github.com/taiki-e/cargo-no-dev-deps
 
-use std::path::Path;
+use std::{collections::BTreeSet, path::Path};
 
 use anyhow::{bail, format_err, Context as _, Result};
 
@@ -76,7 +76,7 @@ pub(crate) fn with(
     let workspace_root = &metadata.workspace_root;
     let root_manifest = &workspace_root.join("Cargo.toml");
     let mut root_crate = None;
-    let mut private_crates = vec![];
+    let mut private_crates = BTreeSet::new();
     let modify_deps = |doc: &mut toml_edit::Document, manifest_path: &Path| {
         if term::verbose() {
             info!("modifying from {}", manifest_path.display());
@@ -103,7 +103,7 @@ pub(crate) fn with(
             if is_root {
                 bail!("--no-private is not supported yet with workspace with private root crate");
             }
-            private_crates.push(manifest_path);
+            private_crates.insert(manifest_path);
         } else if is_root && no_private {
             root_crate = Some(manifest);
             // This case is handled in the if block after loop.
@@ -145,7 +145,7 @@ pub(crate) fn with(
             if term::verbose() {
                 info!("removing private crates from {}", manifest_path.display());
             }
-            remove_private_crates(&mut doc, workspace_root, &private_crates)?;
+            remove_private_crates(&mut doc, workspace_root, private_crates);
         }
         restore.register(orig, manifest_path);
         fs::write(manifest_path, doc.to_string())?;
@@ -181,8 +181,8 @@ fn remove_dev_deps(doc: &mut toml_edit::Document) {
 fn remove_private_crates(
     doc: &mut toml_edit::Document,
     workspace_root: &Path,
-    private_crates: &[&Path],
-) -> Result<()> {
+    mut private_crates: BTreeSet<&Path>,
+) {
     let table = doc.as_table_mut();
     if let Some(workspace) = table.get_mut("workspace").and_then(toml_edit::Item::as_table_like_mut)
     {
@@ -192,25 +192,49 @@ fn remove_private_crates(
             while i < members.len() {
                 if let Some(member) = members.get(i).and_then(toml_edit::Value::as_str) {
                     let manifest_path = workspace_root.join(member).join("Cargo.toml");
-                    if private_crates
-                        .iter()
-                        .find_map(|p| {
-                            same_file::is_same_file(p, &manifest_path)
-                                .map(|v| if v { Some(()) } else { None })
-                                .transpose()
+                    if let Some(p) = private_crates.iter().find_map(|p| {
+                        same_file::is_same_file(p, &manifest_path).ok().and_then(|v| {
+                            if v {
+                                Some(*p)
+                            } else {
+                                None
+                            }
                         })
-                        .transpose()?
-                        .is_some()
-                    {
+                    }) {
                         members.remove(i);
+                        private_crates.remove(p);
                         continue;
                     }
                 }
                 i += 1;
             }
         }
+        if private_crates.is_empty() {
+            return;
+        }
+        // Handles the case that the members field contains glob.
+        // TODO: test that it also works when public and private crates are nested.
+        if let Some(exclude) = workspace.get_mut("exclude").and_then(toml_edit::Item::as_array_mut)
+        {
+            for private_crate in private_crates {
+                exclude.push(private_crate.parent().unwrap().to_str().unwrap());
+            }
+        } else {
+            workspace.insert(
+                "exclude",
+                toml_edit::Item::Value(toml_edit::Value::Array(
+                    private_crates
+                        .iter()
+                        .map(|p| {
+                            toml_edit::Value::String(toml_edit::Formatted::new(
+                                p.parent().unwrap().to_str().unwrap().to_owned(),
+                            ))
+                        })
+                        .collect::<toml_edit::Array>(),
+                )),
+            );
+        }
     }
-    Ok(())
 }
 
 fn detach_path_deps(doc: &mut toml_edit::Document, mode: DetachPathDeps) {

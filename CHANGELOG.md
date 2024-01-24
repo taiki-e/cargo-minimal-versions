@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Fix "No such file or directory" error when `--no-private` flag is used with the workspace that the `members` field contains glob.
+
 ## [0.1.23] - 2023-12-16
 
 - Remove dependency on `is-terminal`.
