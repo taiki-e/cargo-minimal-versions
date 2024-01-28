@@ -60,7 +60,7 @@ fn try_main() -> Result<()> {
         cargo.run()?;
 
         let mut cargo = ws.cargo();
-        // TODO: Provide a way to do this without using cargo-hack.
+        // TODO: Provide a way to do this without using cargo-hack. https://github.com/taiki-e/cargo-minimal-versions/issues/5
         cargo.arg("hack");
         cargo.args(&args.cargo_args);
         if !args.rest.is_empty() {
