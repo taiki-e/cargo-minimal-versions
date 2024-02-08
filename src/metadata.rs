@@ -122,18 +122,18 @@ fn into_array(value: Value) -> Option<Vec<Value>> {
         None
     }
 }
-fn into_object(value: Value) -> Option<Object> {
-    if let Value::Object(object) = value {
-        Some(object)
-    } else {
-        None
-    }
-}
+// fn into_object(value: Value) -> Option<Object> {
+//     if let Value::Object(object) = value {
+//         Some(object)
+//     } else {
+//         None
+//     }
+// }
 
 trait ObjectExt {
     fn remove_string<S: From<String>>(&mut self, key: &'static str) -> ParseResult<S>;
     fn remove_array(&mut self, key: &'static str) -> ParseResult<Vec<Value>>;
-    fn remove_object(&mut self, key: &'static str) -> ParseResult<Object>;
+    // fn remove_object(&mut self, key: &'static str) -> ParseResult<Object>;
     fn remove_nullable<T>(
         &mut self,
         key: &'static str,
@@ -148,9 +148,9 @@ impl ObjectExt for Object {
     fn remove_array(&mut self, key: &'static str) -> ParseResult<Vec<Value>> {
         self.remove(key).and_then(into_array).ok_or(key)
     }
-    fn remove_object(&mut self, key: &'static str) -> ParseResult<Object> {
-        self.remove(key).and_then(into_object).ok_or(key)
-    }
+    // fn remove_object(&mut self, key: &'static str) -> ParseResult<Object> {
+    //     self.remove(key).and_then(into_object).ok_or(key)
+    // }
     fn remove_nullable<T>(
         &mut self,
         key: &'static str,
