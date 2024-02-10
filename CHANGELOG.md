@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Update `toml_edit` to 0.22.
+
 ## [0.1.24] - 2024-01-24
 
 - Fix "No such file or directory" error when `--no-private` flag is used with the workspace that the `members` field contains glob.
