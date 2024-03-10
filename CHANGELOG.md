@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.26] - 2024-03-10
+
 - Pin `ctrlc` to fix [build error on macOS](https://github.com/Detegr/rust-ctrlc/pull/116).
 
 ## [0.1.25] - 2024-02-10
@@ -135,7 +137,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.25...HEAD
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.26...HEAD
+[0.1.26]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.25...v0.1.26
 [0.1.25]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.24...v0.1.25
 [0.1.24]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.23...v0.1.24
 [0.1.23]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.22...v0.1.23
