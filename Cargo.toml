@@ -22,7 +22,7 @@ pkg-fmt = "tgz"
 
 [dependencies]
 anyhow = "1.0.47"
-ctrlc = { version = "3.1.4", features = ["termination"] }
+ctrlc = { version = "=3.4.2", features = ["termination"] } # https://github.com/Detegr/rust-ctrlc/pull/116
 lexopt = "0.3"
 same-file = "1.0.1"
 semver = "1"
