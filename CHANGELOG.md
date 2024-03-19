@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.27] - 2024-03-19
+
 - Improve support for environments without rustup or nightly toolchain installed. Previously, an explicit `RUSTC_BOOTSTRAP=1` was required but it is no longer required.
 
 ## [0.1.26] - 2024-03-10
@@ -139,7 +141,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.26...HEAD
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.27...HEAD
+[0.1.27]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.26...v0.1.27
 [0.1.26]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.25...v0.1.26
 [0.1.25]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.24...v0.1.25
 [0.1.24]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.23...v0.1.24
