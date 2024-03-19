@@ -10,7 +10,7 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
-- Improve support for environments without rustup or nightly toolchain installed. Previously, an explicit `RUSTC_BOOTSTRAP=1` was required.
+- Improve support for environments without rustup or nightly toolchain installed. Previously, an explicit `RUSTC_BOOTSTRAP=1` was required but it is no longer required.
 
 ## [0.1.26] - 2024-03-10
 
