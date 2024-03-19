@@ -12,7 +12,7 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [0.1.27] - 2024-03-19
 
-- Improve support for environments without rustup or nightly toolchain installed. Previously, an explicit `RUSTC_BOOTSTRAP=1` was required but it is no longer required.
+- Improve support for environments without rustup or nightly toolchain installed. Previously, an explicit `RUSTC_BOOTSTRAP=1` was required if rustc is not nightly but it is no longer required.
 
 ## [0.1.26] - 2024-03-10
 
