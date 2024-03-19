@@ -48,6 +48,12 @@ impl ProcessBuilder {
         self
     }
 
+    /// Set a variable in the process's environment.
+    pub(crate) fn env(&mut self, key: impl AsRef<OsStr>, val: impl AsRef<OsStr>) -> &mut Self {
+        self.cmd.env(key.as_ref(), val.as_ref());
+        self
+    }
+
     /// Enables all display-related flags.
     fn display_all(&mut self) {
         self.display_program_path.set(true);

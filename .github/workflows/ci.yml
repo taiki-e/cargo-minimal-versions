@@ -96,7 +96,6 @@ jobs:
         shell: sh
       - uses: taiki-e/checkout-action@v1
       - uses: taiki-e/install-action@cargo-hack
-      - run: echo "RUSTC_BOOTSTRAP=1" >>"${GITHUB_ENV}"
       - run: cargo test --workspace --all-features
       - run: cargo install -f --path . --debug
       - run: cargo minimal-versions check --workspace --no-private --detach-path-deps=skip-exact --all-features -v

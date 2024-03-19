@@ -12,7 +12,13 @@ use crate::{metadata, process::ProcessBuilder};
 pub(crate) struct Workspace {
     pub(crate) metadata: metadata::Metadata,
     cargo: PathBuf,
-    nightly: bool,
+    cargo_mode: CargoMode,
+}
+
+enum CargoMode {
+    Nightly,
+    StableHasRustup,
+    StableNoRustup,
 }
 
 impl Workspace {
@@ -23,19 +29,32 @@ impl Workspace {
 
         let metadata = metadata::Metadata::new(manifest_path, &cargo, rustc_version.minor)?;
 
-        Ok(Self { cargo: cargo.into(), nightly: rustc_version.nightly, metadata })
+        let cargo_mode = if rustc_version.nightly {
+            CargoMode::Nightly
+        } else if cmd!("rustup", "run", "nightly", "cargo", "--version").run_with_output().is_ok() {
+            CargoMode::StableHasRustup
+        } else {
+            CargoMode::StableNoRustup
+        };
+
+        Ok(Self { cargo: cargo.into(), cargo_mode, metadata })
     }
 
     pub(crate) fn cargo(&self) -> ProcessBuilder {
         cmd!(&self.cargo)
     }
 
+    // Used for `cargo update -Z minimal-versions` / `cargo update -Z direct-minimal-versions`
     pub(crate) fn cargo_nightly(&self) -> ProcessBuilder {
-        if self.nightly {
-            self.cargo()
-        } else {
+        match self.cargo_mode {
+            CargoMode::Nightly => self.cargo(),
             // Do not use `cargo +nightly` due to a rustup bug: https://github.com/rust-lang/rustup/issues/3036
-            cmd!("rustup", "run", "nightly", "cargo")
+            CargoMode::StableHasRustup => cmd!("rustup", "run", "nightly", "cargo"),
+            CargoMode::StableNoRustup => {
+                let mut cargo = self.cargo();
+                cargo.env("RUSTC_BOOTSTRAP", "1");
+                cargo
+            }
         }
     }
 }

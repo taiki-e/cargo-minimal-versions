@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Improve support for environments without rustup or nightly toolchain installed. Previously, an explicit `RUSTC_BOOTSTRAP=1` was required.
+
 ## [0.1.26] - 2024-03-10
 
 - Pin `ctrlc` to fix [build error on macOS](https://github.com/Detegr/rust-ctrlc/pull/116).
