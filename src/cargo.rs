@@ -32,6 +32,8 @@ impl Workspace {
         let cargo_mode = if rustc_version.nightly {
             CargoMode::Nightly
         } else if cmd!("rustup", "run", "nightly", "cargo", "--version").run_with_output().is_ok() {
+            // Favor `rustup run nightly cargo update -Z ...` over `RUSTC_BOOTSTRAP=1 cargo update -Z ...`
+            // since -Z direct-minimal-versions may not be available on the current toolchain version.
             CargoMode::StableHasRustup
         } else {
             CargoMode::StableNoRustup
