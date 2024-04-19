@@ -7,6 +7,7 @@
 Cargo subcommand for proper use of [`-Z minimal-versions`][cargo#5657] and [`-Z direct-minimal-versions`][direct-minimal-versions].
 
 - [Usage](#usage)
+  - [--direct (-Z direct-minimal-versions)](#--direct--z-direct-minimal-versions)
 - [Details](#details)
 - [Installation](#installation)
 - [Related Projects](#related-projects)
@@ -109,7 +110,7 @@ cargo +stable install cargo-hack --locked
 cargo +stable install cargo-minimal-versions --locked
 ```
 
-*Compiler support: requires rustc 1.70+*
+Currently, installing cargo-minimal-versions requires rustc 1.70+.
 
 cargo-minimal-versions is usually runnable with Cargo versions older than the Rust version
 required for installation (e.g., `cargo +1.59 minimal-versions check`).
@@ -146,7 +147,7 @@ This makes the installation faster and may avoid the impact of [problems caused 
 <!-- omit in toc -->
 ### Via Homebrew
 
-You can install [cargo-minimal-versions using Homebrew tap on macOS and Linux](https://github.com/taiki-e/homebrew-tap/blob/HEAD/Formula/cargo-minimal-versions.rb):
+You can install cargo-minimal-versions from the [Homebrew tap maintained by us](https://github.com/taiki-e/homebrew-tap/blob/HEAD/Formula/cargo-minimal-versions.rb) (x86_64/aarch64 macOS, x86_64/aarch64 Linux):
 
 ```sh
 brew install taiki-e/tap/cargo-minimal-versions
@@ -155,7 +156,7 @@ brew install taiki-e/tap/cargo-minimal-versions
 <!-- omit in toc -->
 ### Via Scoop (Windows)
 
-You can install [cargo-minimal-versions using Scoop](https://github.com/taiki-e/scoop-bucket/blob/HEAD/bucket/cargo-minimal-versions.json):
+You can install cargo-minimal-versions from the [Scoop bucket maintained by us](https://github.com/taiki-e/scoop-bucket/blob/HEAD/bucket/cargo-minimal-versions.json):
 
 ```sh
 scoop bucket add taiki-e https://github.com/taiki-e/scoop-bucket
