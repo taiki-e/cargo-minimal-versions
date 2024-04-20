@@ -59,7 +59,7 @@ impl Workspace {
 
 fn cargo_version(cargo: &OsStr) -> Result<CargoVersion> {
     // Use verbose version output because the packagers add extra strings to the normal version output.
-    let mut cmd = cmd!(cargo, "--version", "--verbose");
+    let mut cmd = cmd!(cargo, "-vV");
     let verbose_version = cmd.read()?;
     CargoVersion::parse(&verbose_version)
         .ok_or_else(|| format_err!("unexpected version output from {cmd}: {verbose_version}"))
