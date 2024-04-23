@@ -28,7 +28,7 @@ fn main() {
     }
     if term::error()
         || term::warn()
-            && env::var_os("CARGO_MINIMAL_VERSIONS_DENY_WARNINGS").filter(|v| v == "true").is_some()
+            && env::var_os("CARGO_MINIMAL_VERSIONS_DENY_WARNINGS").unwrap_or_default() == "1"
     {
         std::process::exit(1)
     }

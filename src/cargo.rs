@@ -83,7 +83,7 @@ impl CargoVersion {
         let _patch = digits.next()?.parse::<u32>().ok()?;
         let nightly = channel == "nightly"
             || channel == "dev"
-            || env::var("RUSTC_BOOTSTRAP").ok().as_deref() == Some("1");
+            || env::var_os("RUSTC_BOOTSTRAP").unwrap_or_default() == "1";
 
         Some(Self { minor, nightly })
     }
