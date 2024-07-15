@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.28] - 2024-07-15
+
 - Distribute prebuilt binary for x86_64 illumos.
 
 - Always exit with 1 on SIGINT/SIGTERM/SIGHUP. Previously, it sometimes exited with 0, but this sometimes worked badly with CI systems that attempted to terminate processes in SIGINT during resource usage problems.
@@ -145,7 +147,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.27...HEAD
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.28...HEAD
+[0.1.28]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.27...v0.1.28
 [0.1.27]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.26...v0.1.27
 [0.1.26]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.25...v0.1.26
 [0.1.25]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.24...v0.1.25
