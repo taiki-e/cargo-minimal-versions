@@ -68,7 +68,7 @@ impl File {
         if term::verbose() {
             info!("restoring {}", self.path.display());
         }
-        fs::write(&self.path, &self.text)?;
+        fs::write_atomic(&self.path, &self.text)?;
         Ok(())
     }
 }

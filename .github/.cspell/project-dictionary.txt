@@ -1,1 +1,6 @@
 binstall
+fchmod
+IRWXG
+IRWXO
+IRWXU
+rustix

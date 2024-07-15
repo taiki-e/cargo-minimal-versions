@@ -115,7 +115,7 @@ pub(crate) fn with(
             let mut doc = manifest.doc;
             modify_deps(&mut doc, manifest_path);
             restore.register(manifest.raw, manifest_path);
-            fs::write(manifest_path, doc.to_string())?;
+            fs::write_atomic(manifest_path, doc.to_string())?;
         } else if args.detach_path_deps.is_some() {
             bail!(
                 "--detach-path-deps is currently unsupported on subcommand that requires dev-dependencies: {}",
@@ -148,7 +148,7 @@ pub(crate) fn with(
             remove_private_crates(&mut doc, workspace_root, private_crates);
         }
         restore.register(orig, manifest_path);
-        fs::write(manifest_path, doc.to_string())?;
+        fs::write_atomic(manifest_path, doc.to_string())?;
     }
     if restore_lockfile {
         let lockfile = &workspace_root.join("Cargo.lock");

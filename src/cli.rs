@@ -253,9 +253,9 @@ mod tests {
     };
 
     use anyhow::Result;
+    use fs_err as fs;
 
     use super::USAGE;
-    use crate::fs;
 
     #[track_caller]
     fn assert_diff(expected_path: impl AsRef<Path>, actual: impl AsRef<str>) {

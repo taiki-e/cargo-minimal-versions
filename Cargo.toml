@@ -27,10 +27,15 @@ lexopt = "0.3"
 same-file = "1.0.1"
 semver = "1"
 serde_json = "1"
-termcolor = "1"
+tempfile = "3"
+termcolor = "1.1"
 toml_edit = "0.22.7"
 
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
 [dev-dependencies]
+fs-err = "2"
 
 [lints]
 workspace = true
