@@ -31,6 +31,7 @@ termcolor = "1"
 toml_edit = "0.22.7"
 
 [dev-dependencies]
+fs-err = "2.3"
 
 [lints]
 workspace = true
