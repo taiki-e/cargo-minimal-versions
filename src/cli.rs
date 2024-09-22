@@ -41,7 +41,7 @@ pub(crate) enum Subcommand {
 
 impl Subcommand {
     fn new(s: &str) -> Self {
-        // https://github.com/rust-lang/cargo/blob/0.62.0/src/bin/cargo/main.rs#L48-L56
+        // https://github.com/rust-lang/cargo/blob/0.80.0/src/bin/cargo/main.rs#L109-L118
         match s {
             "b" | "build" | "c" | "check" | "r" | "run" | "clippy" => Self::Builtin(s.to_owned()),
             "t" | "test" | "bench" => Self::BuiltinDev(s.to_owned()),
