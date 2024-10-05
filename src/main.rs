@@ -35,7 +35,7 @@ fn main() {
 
 fn try_main() -> Result<()> {
     let args = Args::parse()?;
-    let ws = Workspace::new(args.manifest_path.as_deref())?;
+    let ws = Workspace::new(args.manifest_path.as_deref(), args.direct)?;
 
     // Remove dev-dependencies from Cargo.toml to prevent the next `cargo update`
     // from determining minimal versions based on dev-dependencies.

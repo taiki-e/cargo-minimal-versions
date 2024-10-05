@@ -14,12 +14,12 @@ pub(crate) struct Workspace {
 
 enum CargoMode {
     Nightly,
-    StableHasRustup,
-    StableNoRustup,
+    StableHasUnstableOption,
+    StableNoUnstableOption,
 }
 
 impl Workspace {
-    pub(crate) fn new(manifest_path: Option<&str>) -> Result<Self> {
+    pub(crate) fn new(manifest_path: Option<&str>, direct: bool) -> Result<Self> {
         let cargo = env::var_os("CARGO").unwrap_or_else(|| "cargo".into());
         let cargo_version = cargo_version(&cargo)?;
 
@@ -27,12 +27,19 @@ impl Workspace {
 
         let cargo_mode = if cargo_version.nightly {
             CargoMode::Nightly
-        } else if cmd!("rustup", "run", "nightly", "cargo", "--version").run_with_output().is_ok() {
-            // Favor `rustup run nightly cargo update -Z ...` over `RUSTC_BOOTSTRAP=1 cargo update -Z ...`
-            // since -Z direct-minimal-versions may not be available on the current toolchain version.
-            CargoMode::StableHasRustup
+        } else if !direct
+            || cmd!(&cargo, "-Z", "help")
+                .env("RUSTC_BOOTSTRAP", "1")
+                .read()
+                .unwrap_or_default()
+                .contains("direct-minimal-versions")
+            || cmd!("rustup", "run", "nightly", "cargo", "--version").run_with_output().is_err()
+        {
+            // Favor `RUSTC_BOOTSTRAP=1 cargo update -Z ...` over `rustup run nightly cargo update -Z ...`
+            // when -Z direct-minimal-versions is available on the current toolchain version.
+            CargoMode::StableHasUnstableOption
         } else {
-            CargoMode::StableNoRustup
+            CargoMode::StableNoUnstableOption
         };
 
         Ok(Self { cargo: cargo.into(), cargo_mode, metadata })
@@ -46,13 +53,13 @@ impl Workspace {
     pub(crate) fn cargo_nightly(&self) -> ProcessBuilder {
         match self.cargo_mode {
             CargoMode::Nightly => self.cargo(),
-            // Do not use `cargo +nightly` due to a rustup bug: https://github.com/rust-lang/rustup/issues/3036
-            CargoMode::StableHasRustup => cmd!("rustup", "run", "nightly", "cargo"),
-            CargoMode::StableNoRustup => {
+            CargoMode::StableHasUnstableOption => {
                 let mut cargo = self.cargo();
                 cargo.env("RUSTC_BOOTSTRAP", "1");
                 cargo
             }
+            // Do not use `cargo +nightly` due to a rustup bug: https://github.com/rust-lang/rustup/issues/3036
+            CargoMode::StableNoUnstableOption => cmd!("rustup", "run", "nightly", "cargo"),
         }
     }
 }
