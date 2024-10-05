@@ -36,7 +36,7 @@ impl Workspace {
             || cmd!("rustup", "run", "nightly", "cargo", "--version").run_with_output().is_err()
         {
             // Favor `RUSTC_BOOTSTRAP=1 cargo update -Z ...` over `rustup run nightly cargo update -Z ...`
-            // when -Z direct-minimal-versions is available on the current toolchain version.
+            // when the corresponding unstable option is available on the current toolchain version.
             CargoMode::StableHasUnstableOption
         } else {
             CargoMode::StableNoUnstableOption
