@@ -10,6 +10,10 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Work around "lock file version `4` was found, but this version of Cargo does not understand this lock file" error related to the recent nightly Cargo change. ([#31](https://github.com/taiki-e/cargo-minimal-versions/issues/31))
+
+- Disable quick-install fallback of cargo-binstall.
+
 ## [0.1.28] - 2024-07-15
 
 - Distribute prebuilt binary for x86_64 illumos.
@@ -121,7 +125,7 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
   This increases the rustc version required to build cargo-minimal-versions. (rustc 1.56+ -> 1.60+)
   The cargo/rustc version required to run cargo-minimal-versions remains unchanged.
 
-- Distribute prebuilt binaries for aarch64 Windows.
+- Distribute prebuilt binaries for AArch64 Windows.
 
 ## [0.1.5] - 2022-07-08
 
@@ -129,7 +133,7 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [0.1.4] - 2022-06-02
 
-- Distribute prebuilt binaries for aarch64 macOS. ([#7](https://github.com/taiki-e/cargo-minimal-versions/pull/7))
+- Distribute prebuilt binaries for AArch64 macOS. ([#7](https://github.com/taiki-e/cargo-minimal-versions/pull/7))
 
 ## [0.1.3] - 2022-02-05
 
@@ -137,7 +141,7 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [0.1.2] - 2022-01-21
 
-- Distribute prebuilt binaries for aarch64 Linux (gnu and musl).
+- Distribute prebuilt binaries for AArch64 Linux (gnu and musl).
 
 ## [0.1.1] - 2022-01-05
 

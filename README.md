@@ -60,7 +60,7 @@ cargo minimal-versions check --workspace --ignore-private --detach-path-deps
 ```
 
 `--detach-path-deps` (`--detach-path-deps=all`) flag removes all[^1] path fields by default.
-By using `--detach-path-deps=skip-exact` flag, you can skip the removal of path fields in dependencies with exact version requirements (`"=<version>"`). For example, this is useful for [a pair of a proc-macro and a library that export it](https://github.com/taiki-e/pin-project/blob/df5ed4369e2c34d2111b71ef2fdd6b3621c55fa3/Cargo.toml#L32).
+By using `--detach-path-deps=skip-exact` flag, you can skip the removal of path fields in dependencies with exact version requirements (`"=<version>"`). For example, this is useful for [a pair of a proc-macro and a library that export it](https://github.com/taiki-e/pin-project/blob/v1.1.5/Cargo.toml#L28).
 
 [^1]: To exactly, when neither version, git, nor path is specified, an error will occur, so we will remove the path field of all of dependencies for which the version or git URL is specified.
 
@@ -147,7 +147,7 @@ This makes the installation faster and may avoid the impact of [problems caused 
 <!-- omit in toc -->
 ### Via Homebrew
 
-You can install cargo-minimal-versions from the [Homebrew tap maintained by us](https://github.com/taiki-e/homebrew-tap/blob/HEAD/Formula/cargo-minimal-versions.rb) (x86_64/aarch64 macOS, x86_64/aarch64 Linux):
+You can install cargo-minimal-versions from the [Homebrew tap maintained by us](https://github.com/taiki-e/homebrew-tap/blob/HEAD/Formula/cargo-minimal-versions.rb) (x86_64/AArch64 macOS, x86_64/AArch64 Linux):
 
 ```sh
 brew install taiki-e/tap/cargo-minimal-versions
