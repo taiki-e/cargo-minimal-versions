@@ -10,6 +10,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.29] - 2024-10-05
+
 - Work around "lock file version `4` was found, but this version of Cargo does not understand this lock file" error related to the recent nightly Cargo change. ([#31](https://github.com/taiki-e/cargo-minimal-versions/issues/31))
 
 - Disable quick-install fallback of cargo-binstall.
@@ -151,7 +153,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.28...HEAD
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.29...HEAD
+[0.1.29]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.28...v0.1.29
 [0.1.28]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.27...v0.1.28
 [0.1.27]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.26...v0.1.27
 [0.1.26]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.25...v0.1.26
