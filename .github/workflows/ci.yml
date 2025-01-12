@@ -32,8 +32,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deny:
-    uses: taiki-e/github-actions/.github/workflows/deny.yml@main
   miri:
     uses: taiki-e/github-actions/.github/workflows/miri.yml@main
     with:
