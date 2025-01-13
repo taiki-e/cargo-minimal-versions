@@ -5,7 +5,7 @@ use std::{env, ffi::OsString};
 use anyhow::{bail, format_err, Result};
 use lexopt::{
     Arg::{Long, Short, Value},
-    ValueExt,
+    ValueExt as _,
 };
 
 use crate::term;
@@ -248,7 +248,7 @@ fn multi_arg(flag: &lexopt::Arg<'_>) -> Result<()> {
 mod tests {
     use std::{
         env,
-        io::Write,
+        io::Write as _,
         path::Path,
         process::{Command, Stdio},
     };
