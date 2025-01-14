@@ -2,7 +2,7 @@
 name = "cargo-minimal-versions"
 version = "0.1.29" #publish:version
 edition = "2021"
-rust-version = "1.70"
+rust-version = "1.70" # Align to cargo-hack
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/taiki-e/cargo-minimal-versions"
 keywords = ["cargo", "subcommand", "testing"]
