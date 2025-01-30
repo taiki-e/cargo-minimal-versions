@@ -33,6 +33,7 @@ toml_edit = "0.22.7"
 
 [dev-dependencies]
 fs-err = "3"
+test-helper = { features = ["cli", "git"], git = "https://github.com/taiki-e/test-helper.git", rev = "295ad29" }
 
 [lints]
 workspace = true
