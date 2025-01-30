@@ -15,13 +15,13 @@ mod manifest;
 mod metadata;
 mod restore;
 
-use std::env;
+use std::{env, process::ExitCode};
 
 use anyhow::Result;
 
 use crate::{cargo::Workspace, cli::Args};
 
-fn main() {
+fn main() -> ExitCode {
     term::init_coloring();
     if let Err(e) = try_main() {
         error!("{e:#}");
@@ -29,12 +29,14 @@ fn main() {
     if term::error()
         || term::warn() && env::var_os("CARGO_MINIMAL_VERSIONS_DENY_WARNINGS").is_some()
     {
-        std::process::exit(1)
+        ExitCode::FAILURE
+    } else {
+        ExitCode::SUCCESS
     }
 }
 
 fn try_main() -> Result<()> {
-    let args = Args::parse()?;
+    let Some(args) = Args::parse()? else { return Ok(()) };
     let ws = Workspace::new(args.manifest_path.as_deref(), args.direct)?;
 
     // Remove dev-dependencies from Cargo.toml to prevent the next `cargo update`

@@ -70,7 +70,7 @@ pub(crate) enum DetachPathDeps {
 }
 
 impl Args {
-    pub(crate) fn parse() -> Result<Self> {
+    pub(crate) fn parse() -> Result<Option<Self>> {
         const SUBCMD: &str = "minimal-versions";
 
         // rustc/cargo args must be valid Unicode
@@ -162,11 +162,11 @@ impl Args {
 
                 Short('h') | Long("help") if subcommand.is_none() => {
                     print!("{USAGE}");
-                    std::process::exit(0);
+                    return Ok(None);
                 }
                 Short('V') | Long("version") if subcommand.is_none() => {
                     println!("{} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
-                    std::process::exit(0);
+                    return Ok(None);
                 }
 
                 // passthrough
@@ -217,7 +217,7 @@ impl Args {
             cargo_args.push(path.clone());
         }
 
-        Ok(Self {
+        Ok(Some(Self {
             no_private,
             direct,
             subcommand,
@@ -225,7 +225,7 @@ impl Args {
             detach_path_deps,
             cargo_args,
             rest,
-        })
+        }))
     }
 }
 
