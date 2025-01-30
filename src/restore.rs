@@ -33,9 +33,9 @@ impl Manager {
     }
 
     /// Registers the given path.
-    pub(crate) fn register(&self, text: impl Into<String>, path: impl Into<PathBuf>) {
+    pub(crate) fn register(&self, contents: impl Into<Vec<u8>>, path: impl Into<PathBuf>) {
         let mut files = self.files.lock().unwrap();
-        files.push(File { text: text.into(), path: path.into() });
+        files.push(File { contents: contents.into(), path: path.into() });
     }
 
     pub(crate) fn restore_all(&self) {
@@ -57,8 +57,8 @@ impl Drop for Manager {
 }
 
 struct File {
-    /// The original text of this file.
-    text: String,
+    /// The original contents of this file.
+    contents: Vec<u8>,
     /// Path to this file.
     path: PathBuf,
 }
@@ -68,7 +68,7 @@ impl File {
         if term::verbose() {
             info!("restoring {}", self.path.display());
         }
-        fs::write(&self.path, &self.text)?;
+        fs::write(&self.path, &self.contents)?;
         Ok(())
     }
 }

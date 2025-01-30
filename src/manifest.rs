@@ -153,7 +153,7 @@ pub(crate) fn with(
     if restore_lockfile {
         let lockfile = &workspace_root.join("Cargo.lock");
         if lockfile.exists() {
-            restore.register(fs::read_to_string(lockfile)?, lockfile);
+            restore.register(fs::read(lockfile)?, lockfile);
         }
     }
 
