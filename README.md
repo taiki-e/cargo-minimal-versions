@@ -44,7 +44,8 @@ To check all crates with minimal version dependencies:
 cargo minimal-versions check --workspace
 ```
 
-**Note:** ([If cargo-minimal-versions determined that it is necessary to do so for a correct minimal versions check](#details)) cargo-minimal-versions modifies `Cargo.toml` and `Cargo.lock` while running and restores it when finished. Any changes you made to those files during running will not be preserved.
+> [!NOTE]
+> ([If cargo-minimal-versions determined that it is necessary to do so for a correct minimal versions check](#details)) cargo-minimal-versions modifies `Cargo.toml` and `Cargo.lock` while running and restores it when finished. Any changes you made to those files during running will not be preserved.
 
 Normally, crates with `publish = false` do not need minimal versions check. You can skip these crates by using `--ignore-private` flag.
 
@@ -59,10 +60,10 @@ By using `--detach-path-deps` flag, you can run minimal versions check with `pat
 cargo minimal-versions check --workspace --ignore-private --detach-path-deps
 ```
 
-`--detach-path-deps` (`--detach-path-deps=all`) flag removes all[^1] path fields by default.
-By using `--detach-path-deps=skip-exact` flag, you can skip the removal of path fields in dependencies with exact version requirements (`"=<version>"`). For example, this is useful for [a pair of a proc-macro and a library that export it](https://github.com/taiki-e/pin-project/blob/v1.1.5/Cargo.toml#L28).
+`--detach-path-deps` (`--detach-path-deps=all`) flag removes all[^1] `path` fields by default.
+By using `--detach-path-deps=skip-exact` flag, you can skip the removal of `path` fields in dependencies with exact version requirements (`"=<version>"`). For example, this is useful for [a pair of a proc-macro and a library that export it](https://github.com/taiki-e/pin-project/blob/v1.1.5/Cargo.toml#L28).
 
-[^1]: To exactly, when neither version, git, nor path is specified, an error will occur, so we will remove the path field of all of dependencies for which the version or git URL is specified.
+[^1]: To exactly, when neither `version`, `git`, nor `path` field is specified, an error will occur, so we will remove the `path` field of all of dependencies for which have `version` or `git` field.
 
 ### --direct (-Z direct-minimal-versions)
 
@@ -74,7 +75,8 @@ By using `--direct` flag, cargo-minimal-versions uses `-Z direct-minimal-version
 cargo minimal-versions check --direct
 ```
 
-Note that using `-Z direct-minimal-versions` may miss some of the problems that can be found when using `-Z minimal-versions`. However, if there is a problem only in a particular version of a dependency, a problem that was missed when using `-Z minimal-versions` may be found by using `-Z direct-minimal-versions` (because the resolved dependency version is different).
+> [!NOTE]
+> Using `-Z direct-minimal-versions` may miss some of the problems that can be found when using `-Z minimal-versions`. However, if there is a problem only in a particular version of a dependency, a problem that was missed when using `-Z minimal-versions` may be found by using `-Z direct-minimal-versions` (because the resolved dependency version is different).
 
 ## Details
 
