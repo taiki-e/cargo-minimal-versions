@@ -16,7 +16,7 @@ Cargo subcommand for proper use of [`-Z minimal-versions`][cargo#5657] and [`-Z 
 ## Usage
 
 <details>
-<summary>Click to show a complete list of options</summary>
+<summary>Complete list of options (click to show)</summary>
 
 <!-- readme-long-help:start -->
 ```console
@@ -124,13 +124,14 @@ You can download prebuilt binaries from the [Release page](https://github.com/ta
 Prebuilt binaries are available for macOS, Linux (gnu and musl), Windows (static executable), FreeBSD, and illumos.
 
 <details>
-<summary>Example of script to download cargo-minimal-versions</summary>
+<summary>Example of script to install from the Release page (click to show)</summary>
 
 ```sh
 # Get host target
 host=$(rustc -vV | grep '^host:' | cut -d' ' -f2)
 # Download binary and install to $HOME/.cargo/bin
-curl --proto '=https' --tlsv1.2 -fsSL https://github.com/taiki-e/cargo-minimal-versions/releases/latest/download/cargo-minimal-versions-$host.tar.gz | tar xzf - -C "$HOME/.cargo/bin"
+curl --proto '=https' --tlsv1.2 -fsSL "https://github.com/taiki-e/cargo-minimal-versions/releases/latest/download/cargo-minimal-versions-$host.tar.gz" \
+  | tar xzf - -C "$HOME/.cargo/bin"
 ```
 
 </details>
