@@ -62,9 +62,9 @@ Using `-Z minimal-versions` in the usual way will not work properly in many case
 
 In addition, due to cargo's feature integration, it is not correct to run `cargo check` or `cargo build` with `-p` (`--package`) or `--workspace` (`--all`) or on virtual manifest. To handle this problem correctly, you need the workspace handling provided by subcommands such as [`cargo hack`][cargo-hack].
 
-cargo-minimal-versions addresses most of these issues and makes it easy to run cargo commands with `-Z minimal-versions`.
+cargo-minimal-versions addresses most of known issues (includes the workspace issue mentioned in the above comment as "no workaround") and makes it easy to run cargo commands with `-Z minimal-versions`.
 
-See [#1](https://github.com/taiki-e/cargo-minimal-versions/issues/1) for the remaining problem.
+See [#6](https://github.com/taiki-e/cargo-minimal-versions/issues/6) for the remaining problem.
 
 ## Installation
 

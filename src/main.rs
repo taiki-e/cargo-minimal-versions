@@ -49,7 +49,9 @@ fn try_main() -> Result<()> {
     // TODO: provide option to keep updated Cargo.lock
     let restore_lockfile = true;
     let restore = restore::Manager::new();
-    let mut restore_handles = Vec::with_capacity(ws.metadata.workspace_members.len());
+    let mut restore_handles =
+        Vec::with_capacity(ws.metadata.workspace_members.len() + usize::from(restore_lockfile));
+    let detach_workspace = ws.metadata.workspace_members.len() > 1;
     if remove_dev_deps {
         for id in &ws.metadata.workspace_members {
             let manifest_path = &ws.metadata[id].manifest_path;
@@ -60,7 +62,7 @@ fn try_main() -> Result<()> {
             self::remove_dev_deps(&mut doc);
             restore_handles.push(restore.push(orig, manifest_path.as_std_path()));
             if term::verbose() {
-                info!("removing dev-dependencies from {manifest_path}");
+                info!("modifying {manifest_path}");
             }
             fs::write(manifest_path, doc.to_string())?;
         }
@@ -94,6 +96,18 @@ fn try_main() -> Result<()> {
     drop(restore_handles);
 
     Ok(())
+}
+
+fn detach_workspace_members(doc: &mut toml_edit::Document) {
+    let table = doc.as_table_mut();
+    if let Some(table) = table.get_mut("workspace").and_then(toml_edit::Item::as_table_like_mut) {
+        table.remove("members");
+    }
+}
+
+fn to_workspace(doc: &mut toml_edit::Document) {
+    let table = doc.as_table_mut();
+    table.entry("workspace").or_insert_with(|| toml_edit::Item::Table(toml_edit::Table::default()));
 }
 
 fn remove_dev_deps(doc: &mut toml_edit::Document) {
