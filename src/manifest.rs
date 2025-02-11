@@ -79,7 +79,7 @@ pub(crate) fn with(
     let mut private_crates = BTreeSet::new();
     let modify_deps = |doc: &mut toml_edit::DocumentMut, manifest_path: &Path| {
         if term::verbose() {
-            info!("modifying from {}", manifest_path.display());
+            info!("modifying dependencies in {}", manifest_path.display());
         }
         remove_dev_deps(doc);
         if let Some(mode) = args.detach_path_deps {
