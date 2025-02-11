@@ -156,6 +156,7 @@ pub(crate) fn with(
             restore.register(fs::read(lockfile)?, lockfile);
         }
     }
+    // TODO: emit error if there is no remaining crates due to --no-private (currently error is emitted by cargo update -Z ...)
 
     f()?;
 
