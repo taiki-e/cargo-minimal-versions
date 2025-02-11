@@ -12,6 +12,10 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Performance improvements.
+
+- Documentation improvements.
+
 ## [0.1.29] - 2024-10-05
 
 - Work around "lock file version `4` was found, but this version of Cargo does not understand this lock file" error related to the recent nightly Cargo change. ([#31](https://github.com/taiki-e/cargo-minimal-versions/issues/31))
