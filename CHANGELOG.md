@@ -12,6 +12,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.30] - 2025-02-11
+
 - Performance improvements.
 
 - Documentation improvements.
@@ -159,7 +161,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.29...HEAD
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.30...HEAD
+[0.1.30]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.29...v0.1.30
 [0.1.29]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.28...v0.1.29
 [0.1.28]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.27...v0.1.28
 [0.1.27]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.26...v0.1.27
