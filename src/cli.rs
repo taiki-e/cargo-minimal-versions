@@ -2,7 +2,7 @@
 
 use std::{env, ffi::OsString};
 
-use anyhow::{bail, format_err, Result};
+use anyhow::{Result, bail, format_err};
 use lexopt::{
     Arg::{Long, Short, Value},
     ValueExt as _,
@@ -46,7 +46,9 @@ impl Subcommand {
             "b" | "build" | "c" | "check" | "r" | "run" | "clippy" => Self::Builtin(s.to_owned()),
             "t" | "test" | "bench" => Self::BuiltinDev(s.to_owned()),
             _ => {
-                warn!("unrecognized subcommand '{s}'; minimal-versions check may not work as expected");
+                warn!(
+                    "unrecognized subcommand '{s}'; minimal-versions check may not work as expected"
+                );
                 Self::Other(s.to_owned())
             }
         }
@@ -143,7 +145,9 @@ impl Args {
                         } else if val == "skip-exact" {
                             detach_path_deps = Some(DetachPathDeps::SkipExact);
                         } else {
-                            bail!("unrecognized value for --detach-path-deps, must be all or skip-exact: {val:?}");
+                            bail!(
+                                "unrecognized value for --detach-path-deps, must be all or skip-exact: {val:?}"
+                            );
                         }
                     } else {
                         // TODO: Is this a reasonable default?

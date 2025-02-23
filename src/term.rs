@@ -7,7 +7,7 @@ use std::{
     sync::atomic::{AtomicBool, AtomicU8, Ordering},
 };
 
-use anyhow::{bail, format_err, Error, Result};
+use anyhow::{Error, Result, bail, format_err};
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor as _};
 
 #[derive(Clone, Copy, PartialEq)]

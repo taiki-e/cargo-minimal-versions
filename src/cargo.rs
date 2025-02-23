@@ -2,7 +2,7 @@
 
 use std::{env, ffi::OsStr, path::PathBuf};
 
-use anyhow::{format_err, Result};
+use anyhow::{Result, format_err};
 
 use crate::{metadata, process::ProcessBuilder};
 
