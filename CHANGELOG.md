@@ -12,6 +12,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Update `toml_edit` to 0.23.
+
 ## [0.1.30] - 2025-02-11
 
 - Performance improvements.
