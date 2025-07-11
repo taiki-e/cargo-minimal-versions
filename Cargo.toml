@@ -1,6 +1,6 @@
 [package]
 name = "cargo-minimal-versions"
-version = "0.1.30" #publish:version
+version = "0.1.31" #publish:version
 edition = "2021"
 rust-version = "1.70" # Align to cargo-hack
 license = "Apache-2.0 OR MIT"
