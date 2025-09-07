@@ -12,6 +12,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Distribute prebuilt binaries for powerpc64le/riscv64gc/s390x Linux.
+
 ## [0.1.31] - 2025-07-11
 
 - Update `toml_edit` to 0.23.
