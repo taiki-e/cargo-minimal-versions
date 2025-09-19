@@ -3,7 +3,7 @@ name = "cargo-minimal-versions"
 version = "0.1.32" #publish:version
 edition = "2021"
 # NB: Sync with the MSRV in "From source" section in README.md.
-rust-version = "1.75" # Align to cargo-hack
+rust-version = "1.76" # Align to cargo-hack
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/taiki-e/cargo-minimal-versions"
 keywords = ["cargo", "subcommand", "testing"]

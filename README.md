@@ -112,7 +112,7 @@ cargo +stable install cargo-hack --locked
 cargo +stable install cargo-minimal-versions --locked
 ```
 
-Currently, installing cargo-minimal-versions requires rustc 1.75+.
+Currently, installing cargo-minimal-versions requires rustc 1.76+.
 
 cargo-minimal-versions is usually runnable with Cargo versions older than the Rust version
 required for installation (e.g., `cargo +1.59 minimal-versions check`).
