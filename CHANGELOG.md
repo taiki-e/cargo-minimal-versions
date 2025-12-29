@@ -12,6 +12,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.34] - 2025-12-29
+
 - Update `toml_edit` to 0.24. This includes TOML 1.1 parse support.
 
 ## [0.1.33] - 2025-09-19
@@ -175,7 +177,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.33...HEAD
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.34...HEAD
+[0.1.34]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.33...v0.1.34
 [0.1.33]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.32...v0.1.33
 [0.1.32]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.31...v0.1.32
 [0.1.31]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.30...v0.1.31
