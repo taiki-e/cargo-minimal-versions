@@ -2,7 +2,7 @@
 
 // Adapted from https://github.com/taiki-e/cargo-hack
 
-use std::{collections::HashMap, ffi::OsStr, path::PathBuf};
+use std::{collections::HashMap, ffi::OsStr, ops, path::PathBuf};
 
 use anyhow::{Context as _, Result, format_err};
 use serde_json::{Map, Value};
@@ -11,15 +11,10 @@ type Object = Map<String, Value>;
 type ParseResult<T> = Result<T, &'static str>;
 
 /// An opaque unique identifier for referring to the package.
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy)]
+#[repr(transparent)]
 pub(crate) struct PackageId {
-    repr: String,
-}
-
-impl From<String> for PackageId {
-    fn from(repr: String) -> Self {
-        Self { repr }
-    }
+    index: usize,
 }
 
 pub(crate) struct Metadata {
@@ -27,7 +22,7 @@ pub(crate) struct Metadata {
     /// List of all packages in the workspace and all feature-enabled dependencies.
     //
     /// This doesn't contain dependencies if cargo-metadata is run with --no-deps.
-    pub(crate) packages: HashMap<PackageId, Package>,
+    pub(crate) packages: Box<[Package]>,
     /// List of members of the workspace.
     pub(crate) workspace_members: Vec<PackageId>,
     /// The absolute path to the root of the workspace.
@@ -54,21 +49,36 @@ impl Metadata {
     }
 
     fn from_obj(mut map: Object, cargo_version: u32) -> ParseResult<Self> {
+        let raw_packages = map.remove_array("packages")?;
+        let mut packages = Vec::with_capacity(raw_packages.len());
+        let mut pkg_id_map = HashMap::with_capacity(raw_packages.len());
+        for (i, pkg) in raw_packages.into_iter().enumerate() {
+            let (id, pkg) = Package::from_value(pkg, cargo_version)?;
+            pkg_id_map.insert(id, i);
+            packages.push(pkg);
+        }
         let workspace_members: Vec<_> = map
             .remove_array("workspace_members")?
             .into_iter()
-            .map(|v| into_string(v).ok_or("workspace_members"))
+            .map(|v| -> ParseResult<_> {
+                let id: String = into_string(v).ok_or("workspace_members")?;
+                Ok(PackageId { index: pkg_id_map[&id] })
+            })
             .collect::<Result<_, _>>()?;
         Ok(Self {
             cargo_version,
-            packages: map
-                .remove_array("packages")?
-                .into_iter()
-                .map(|v| Package::from_value(v, cargo_version))
-                .collect::<Result<_, _>>()?,
+            packages: packages.into_boxed_slice(),
             workspace_members,
             workspace_root: map.remove_string("workspace_root")?,
         })
+    }
+}
+
+impl ops::Index<PackageId> for Metadata {
+    type Output = Package;
+    #[inline]
+    fn index(&self, index: PackageId) -> &Self::Output {
+        &self.packages[index.index]
     }
 }
 
@@ -82,7 +92,7 @@ pub(crate) struct Package {
 }
 
 impl Package {
-    fn from_value(mut value: Value, cargo_version: u32) -> ParseResult<(PackageId, Self)> {
+    fn from_value(mut value: Value, cargo_version: u32) -> ParseResult<(String, Self)> {
         let map = value.as_object_mut().ok_or("packages")?;
 
         let id = map.remove_string("id")?;

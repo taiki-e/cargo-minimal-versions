@@ -89,8 +89,8 @@ pub(crate) fn with(
             detach_path_deps(doc, mode);
         }
     };
-    for id in &metadata.workspace_members {
-        let package = &metadata.packages[id];
+    for &id in &metadata.workspace_members {
+        let package = &metadata[id];
         let manifest_path = &*package.manifest_path;
         let is_root = manifest_path == root_manifest;
         let mut manifest = None;
