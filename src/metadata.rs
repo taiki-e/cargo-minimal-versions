@@ -2,7 +2,12 @@
 
 // Adapted from https://github.com/taiki-e/cargo-hack
 
-use std::{collections::HashMap, ffi::OsStr, ops, path::PathBuf};
+use std::{
+    collections::HashMap,
+    ffi::OsStr,
+    ops,
+    path::{Path, PathBuf},
+};
 
 use anyhow::{Context as _, Result, format_err};
 use serde_json::{Map, Value};
@@ -24,7 +29,7 @@ pub(crate) struct Metadata {
     /// This doesn't contain dependencies if cargo-metadata is run with --no-deps.
     pub(crate) packages: Box<[Package]>,
     /// List of members of the workspace.
-    pub(crate) workspace_members: Vec<PackageId>,
+    pub(crate) workspace_members: Box<[PackageId]>,
     /// The absolute path to the root of the workspace.
     pub(crate) workspace_root: PathBuf,
 }
@@ -57,7 +62,7 @@ impl Metadata {
             pkg_id_map.insert(id, i);
             packages.push(pkg);
         }
-        let workspace_members: Vec<_> = map
+        let workspace_members = map
             .remove_array("workspace_members")?
             .into_iter()
             .map(|v| -> ParseResult<_> {
@@ -84,7 +89,7 @@ impl ops::Index<PackageId> for Metadata {
 
 pub(crate) struct Package {
     /// Absolute path to this package's manifest.
-    pub(crate) manifest_path: PathBuf,
+    pub(crate) manifest_path: Box<Path>,
     /// List of registries to which this package may be published.
     ///
     /// This is always `true` if running with a version of Cargo older than 1.39.
@@ -97,7 +102,7 @@ impl Package {
 
         let id = map.remove_string("id")?;
         Ok((id, Self {
-            manifest_path: map.remove_string("manifest_path")?,
+            manifest_path: map.remove_string::<PathBuf>("manifest_path")?.into_boxed_path(),
             // This field was added in Rust 1.39.
             publish: if cargo_version >= 39 {
                 // Publishing is unrestricted if null, and forbidden if an empty array.
