@@ -41,9 +41,8 @@ jobs:
   tidy:
     uses: taiki-e/github-actions/.github/workflows/tidy.yml@main
     permissions:
-      contents: read
-      pull-requests: write # for gh pr edit --add-assignee
-      repository-projects: read # for gh pr edit --add-assignee
+      contents: write # for creating branch for pr
+      pull-requests: write # unused (used in `codegen-automerge: true` case)
       security-events: write # for github/codeql-action/*
     secrets: inherit
 
@@ -66,8 +65,10 @@ jobs:
       - uses: taiki-e/github-actions/install-rust@main
         with:
           toolchain: ${{ matrix.rust }}
-      - uses: taiki-e/install-action@cargo-hack
-      - uses: taiki-e/install-action@cargo-minimal-versions
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-hack,cargo-minimal-versions
+          fallback: none
       - run: cargo test --workspace --all-features
       - run: cargo hack build --workspace --no-private --feature-powerset --no-dev-deps
       - run: cargo minimal-versions build --workspace --no-private --detach-path-deps=skip-exact --all-features
@@ -108,7 +109,10 @@ jobs:
       - uses: taiki-e/checkout-action@v1
       - name: Install Rust
         run: apk --no-cache add cargo
-      - uses: taiki-e/install-action@cargo-hack
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-hack
+          fallback: none
       - run: cargo test --workspace --all-features
       - run: cargo install -f --path . --debug
       - run: cargo minimal-versions check --workspace --no-private --detach-path-deps=skip-exact --all-features -v
