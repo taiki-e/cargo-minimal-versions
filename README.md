@@ -122,16 +122,65 @@ required for installation (e.g., `cargo +1.59 minimal-versions check`).
 
 You can download prebuilt binaries from the [Release page](https://github.com/taiki-e/cargo-minimal-versions/releases).
 Prebuilt binaries are available for Linux (x86_64 gnu/musl, aarch64 gnu/musl, powerpc64le gnu/musl, riscv64gc gnu/musl, and s390x gnu, musl binaries are static executable), macOS (x86_64, aarch64, and universal), Windows (x86_64 and aarch64, static executable), FreeBSD (x86_64), and illumos (x86_64).
+All releases are [immutable](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases) and releases since 0.1.37 publish [artifact attestations](https://docs.github.com/en/actions/concepts/security/artifact-attestations).
 
 <details>
-<summary>Example of script to install from the Release page (click to show)</summary>
+<summary>Example of script to install from the Release page with verifications (click to show)</summary>
 
 ```sh
-# Get host target
+# Get host target.
 host=$(rustc -vV | grep '^host:' | cut -d' ' -f2)
-# Download binary and install to $HOME/.cargo/bin
+# Download binary.
+curl --proto '=https' --tlsv1.2 -fsSL -o cargo-minimal-versions.tar.gz "https://github.com/taiki-e/cargo-minimal-versions/releases/latest/download/cargo-minimal-versions-${host}.tar.gz"
+# Verify release attestations.
+gh release -R https://github.com/taiki-e/cargo-minimal-versions verify-asset cargo-minimal-versions.tar.gz
+# Verify artifact attestations.
+gh attestation verify --owner taiki-e cargo-minimal-versions.tar.gz
+# Install to $CARGO_HOME/bin (or $HOME/.cargo/bin if CARGO_HOME is unset).
+tar xf cargo-minimal-versions.tar.gz -C "${CARGO_HOME:-"$HOME/.cargo"}"/bin
+# Remove archive.
+rm cargo-minimal-versions.tar.gz
+```
+
+`gh release -R .. verify-asset` should output messages like the following (`<hash256>`/`<hash1>`/`<version>` contains the actual SHA-256 digest of the downloaded file / the actual SHA-1 digest of tag / the actual version number):
+
+```text
+Calculated digest for cargo-minimal-versions.tar.gz: sha256:<hash256>
+Resolved tag v<version> to sha1:<hash1>
+Loaded attestation from GitHub API
+✓ Verification succeeded! cargo-minimal-versions.tar.gz is present in release v<version>
+```
+
+`gh attestation verify` should output messages like the following (`<hash256>` contains the actual SHA-256 digest of the downloaded file):
+
+```text
+Loaded digest sha256:<hash256> for file://cargo-minimal-versions.tar.gz
+Loaded 1 attestation from GitHub API
+The following policy criteria will be enforced:
+- Predicate type must match:................ https://slsa.dev/provenance/v1
+- Source Repository Owner URI must match:... https://github.com/taiki-e
+- Subject Alternative Name must match regex: (?i)^https://github.com/taiki-e/
+- OIDC Issuer must match:................... https://token.actions.githubusercontent.com
+✓ Verification succeeded!
+The following 1 attestation matched the policy criteria
+- Attestation #1
+  - Build repo:..... taiki-e/cargo-minimal-versions
+  - Build workflow:. .github/workflows/release.yml@refs/heads/main
+  - Signer repo:.... taiki-e/github-actions
+  - Signer workflow: .github/workflows/rust-release.yml@refs/heads/main
+```
+
+</details>
+
+<details>
+<summary>Example of script to install from the Release page without verification (click to show)</summary>
+
+```sh
+# Get host target.
+host=$(rustc -vV | grep '^host:' | cut -d' ' -f2)
+# Download binary and install to $CARGO_HOME/bin (or $HOME/.cargo/bin if CARGO_HOME is unset).
 curl --proto '=https' --tlsv1.2 -fsSL "https://github.com/taiki-e/cargo-minimal-versions/releases/latest/download/cargo-minimal-versions-$host.tar.gz" \
-  | tar xzf - -C "$HOME/.cargo/bin"
+  | tar xzf - -C "${CARGO_HOME:-"$HOME/.cargo"}"/bin
 ```
 
 </details>
