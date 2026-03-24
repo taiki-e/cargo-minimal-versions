@@ -135,7 +135,7 @@ curl --proto '=https' --tlsv1.2 -fsSL -o cargo-minimal-versions.tar.gz "https://
 # Verify release attestations.
 gh release -R https://github.com/taiki-e/cargo-minimal-versions verify-asset cargo-minimal-versions.tar.gz
 # Verify artifact attestations.
-gh attestation verify --owner taiki-e cargo-minimal-versions.tar.gz
+gh attestation verify --repo taiki-e/cargo-minimal-versions --signer-workflow taiki-e/github-actions/.github/workflows/rust-release.yml cargo-minimal-versions.tar.gz
 # Install to $CARGO_HOME/bin (or $HOME/.cargo/bin if CARGO_HOME is unset).
 tar xf cargo-minimal-versions.tar.gz -C "${CARGO_HOME:-"$HOME/.cargo"}"/bin
 # Remove archive.
