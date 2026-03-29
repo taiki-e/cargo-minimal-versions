@@ -44,7 +44,8 @@ jobs:
       contents: write # for creating branch for pr
       pull-requests: write # unused (used in `codegen-automerge: true` case)
       security-events: write # for github/codeql-action/*
-    secrets: inherit
+    secrets:
+      PR_TOKEN_APP_PRIVATE_KEY: ${{ secrets.PR_TOKEN_APP_PRIVATE_KEY }}
 
   test:
     strategy:
@@ -92,7 +93,7 @@ jobs:
           retry git clone --depth 1 https://github.com/taiki-e/portable-atomic.git
           cd -- portable-atomic
           toolchain=1.34
-          if [[ "${{ matrix.os }}" == "macos"* ]]; then
+          if [[ "$(uname -s)" == 'Darwin' ]]; then
             toolchain=1.54 # https://github.com/rust-lang/rust/issues/105167
           fi
           retry rustup toolchain add "${toolchain}" --no-self-update
