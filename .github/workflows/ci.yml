@@ -31,22 +31,22 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  miri:
-    uses: taiki-e/github-actions/.github/workflows/miri.yml@5f549ff6b21e9a853f5f613784d5db27746fd2bc # main
-  msrv:
-    uses: taiki-e/github-actions/.github/workflows/msrv.yml@5f549ff6b21e9a853f5f613784d5db27746fd2bc # main
-  release-dry-run:
-    uses: taiki-e/github-actions/.github/workflows/release-dry-run.yml@5f549ff6b21e9a853f5f613784d5db27746fd2bc # main
   tidy:
-    uses: taiki-e/github-actions/.github/workflows/tidy.yml@5f549ff6b21e9a853f5f613784d5db27746fd2bc # main
+    uses: taiki-e/github-actions/.github/workflows/tidy.yml@3637cc7cf76d2ce698edc313bcd39bad8a92caa8 # main
     permissions:
-      contents: write # for creating branch for pr
-      pull-requests: write # unused (used in `codegen-automerge: true` case)
       security-events: write # for github/codeql-action/*
-    secrets:
-      PR_TOKEN_APP_PRIVATE_KEY: ${{ secrets.PR_TOKEN_APP_PRIVATE_KEY }}
+  miri:
+    needs: tidy
+    uses: taiki-e/github-actions/.github/workflows/rust-miri.yml@3637cc7cf76d2ce698edc313bcd39bad8a92caa8 # main
+  msrv:
+    needs: tidy
+    uses: taiki-e/github-actions/.github/workflows/rust-msrv.yml@3637cc7cf76d2ce698edc313bcd39bad8a92caa8 # main
+  release-dry-run:
+    needs: tidy
+    uses: taiki-e/github-actions/.github/workflows/rust-release-dry-run.yml@3637cc7cf76d2ce698edc313bcd39bad8a92caa8 # main
 
   test:
+    needs: tidy
     strategy:
       fail-fast: false
       matrix:
@@ -62,12 +62,9 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
-      - uses: taiki-e/github-actions/install-rust@5f549ff6b21e9a853f5f613784d5db27746fd2bc # main # zizmor: ignore[stale-action-refs]
+      - uses: taiki-e/install-action@ec28e287910af896fd98e04056d31fa68607e7ad # v2.77.4
         with:
-          toolchain: ${{ matrix.rust }}
-      - uses: taiki-e/install-action@58e862542551f667fa44c8a2a4a1d64ad477c96a # v2.75.17
-        with:
-          tool: cargo-hack,cargo-minimal-versions
+          tool: rust@${{ matrix.rust }},cargo-hack,cargo-minimal-versions
           fallback: none
       - run: cargo test --workspace --all-features
       - run: cargo hack build --workspace --no-private --feature-powerset --no-dev-deps
@@ -102,6 +99,7 @@ jobs:
 
   test-no-rustup:
     name: test (no rustup)
+    needs: tidy
     runs-on: ubuntu-24.04
     timeout-minutes: 60
     container: alpine
@@ -109,7 +107,7 @@ jobs:
       - uses: taiki-e/checkout-action@7d1e50e93dc4fb3bba58f85018fadf77898aee8b # v1.4.2
       - name: Install Rust
         run: apk --no-cache add cargo
-      - uses: taiki-e/install-action@58e862542551f667fa44c8a2a4a1d64ad477c96a # v2.75.17
+      - uses: taiki-e/install-action@ec28e287910af896fd98e04056d31fa68607e7ad # v2.77.4
         with:
           tool: cargo-hack
           fallback: none
