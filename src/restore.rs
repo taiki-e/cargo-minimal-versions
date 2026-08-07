@@ -19,17 +19,16 @@ pub(crate) struct Manager {
 }
 
 impl Manager {
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new() -> Result<Self> {
         let this = Self { files: Arc::new(Mutex::new(vec![])) };
 
         let cloned = this.clone();
         ctrlc::set_handler(move || {
             cloned.restore_all();
             std::process::exit(1)
-        })
-        .unwrap();
+        })?;
 
-        this
+        Ok(this)
     }
 
     /// Registers the given path.
