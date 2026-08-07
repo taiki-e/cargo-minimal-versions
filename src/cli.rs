@@ -136,7 +136,7 @@ impl Args {
 
             match arg {
                 Long("color") => parse_opt!(color),
-                Long("manifest-path") => parse_opt!(manifest_path),
+                Short('m') | Long("manifest-path") => parse_opt!(manifest_path),
                 Short('v') | Long("verbose") => verbose += 1,
                 Long("detach-path-deps") => {
                     if let Some(val) = parser.optional_value() {

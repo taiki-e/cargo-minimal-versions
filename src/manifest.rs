@@ -75,7 +75,7 @@ pub(crate) fn with(
     // TODO: provide option to keep updated Cargo.lock
     let restore_lockfile = true;
     let no_private = args.no_private;
-    let restore = restore::Manager::new();
+    let restore = restore::Manager::new()?;
     let workspace_root = &metadata.workspace_root;
     let root_manifest = &workspace_root.join("Cargo.toml");
     let mut root_crate = None;
