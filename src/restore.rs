@@ -2,6 +2,8 @@
 
 // Adapted from https://github.com/taiki-e/cargo-hack
 
+// Note that this can handle SIGINT and SIGTERM, but cannot handle SIGKILL.
+
 use std::{
     mem,
     path::PathBuf,
