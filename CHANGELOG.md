@@ -12,6 +12,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.38] - 2026-11-01
+
 - Support `-m` alias [added in Cargo 1.97](https://github.com/rust-lang/cargo/pull/16858).
 
 - Distribute prebuilt binary for AArch64 FreeBSD (tier 2 since Rust 1.98).
@@ -193,7 +195,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.37...HEAD
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.38...HEAD
+[0.1.38]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.37...v0.1.38
 [0.1.37]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.36...v0.1.37
 [0.1.36]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.35...v0.1.36
 [0.1.35]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.34...v0.1.35
