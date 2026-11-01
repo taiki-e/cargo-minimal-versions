@@ -121,7 +121,7 @@ required for installation (e.g., `cargo +1.59 minimal-versions check`).
 ### From prebuilt binaries
 
 You can download prebuilt binaries from the [Release page](https://github.com/taiki-e/cargo-minimal-versions/releases).
-Prebuilt binaries are available for Linux (x86_64 gnu/musl, aarch64 gnu/musl, powerpc64le gnu/musl, riscv64gc gnu/musl, and s390x gnu, musl binaries are static executable), macOS (x86_64, aarch64, and universal), Windows (x86_64 and aarch64, static executable), FreeBSD (x86_64), and illumos (x86_64).
+Prebuilt binaries are available for Linux (x86_64 gnu/musl, aarch64 gnu/musl, powerpc64le gnu/musl, riscv64gc gnu/musl, and s390x gnu, musl binaries are static executable), macOS (x86_64, aarch64, and universal), Windows (x86_64 and aarch64, static executable), FreeBSD (x86_64 and aarch64), and illumos (x86_64).
 All releases are [immutable](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases) and releases since 0.1.37 publish [artifact attestations](https://docs.github.com/en/actions/concepts/security/artifact-attestations).
 
 <details>
