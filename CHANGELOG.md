@@ -12,6 +12,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Support `-m` alias [added in Cargo 1.97](https://github.com/rust-lang/cargo/pull/16858).
+
 ## [0.1.37] - 2026-03-20
 
 - Publish [artifact attestations](https://docs.github.com/en/actions/concepts/security/artifact-attestations).
