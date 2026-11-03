@@ -224,6 +224,11 @@ You can install cargo-minimal-versions using [cargo-binstall](https://github.com
 cargo binstall cargo-minimal-versions
 ```
 
+<!-- omit in toc -->
+### Via other package managers
+
+[![Packaging status](https://repology.org/badge/vertical-allrepos/cargo-minimal-versions.svg?columns=4)](https://repology.org/project/cargo-minimal-versions/versions)
+
 ## Related Projects
 
 - [cargo-hack]: Cargo subcommand to provide various options useful for testing and continuous integration.
