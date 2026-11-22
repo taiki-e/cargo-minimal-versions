@@ -12,6 +12,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+## [0.1.39] - 2026-11-22
+
 - Fix an issue where `-q`/`--quiet` is not forwarded to `cargo update`. ([#40](https://github.com/taiki-e/cargo-minimal-versions/issues/40))
 
 ## [0.1.38] - 2026-11-01
@@ -197,7 +199,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 Initial release
 
-[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.38...HEAD
+[Unreleased]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.39...HEAD
+[0.1.39]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.38...v0.1.39
 [0.1.38]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.37...v0.1.38
 [0.1.37]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.36...v0.1.37
 [0.1.36]: https://github.com/taiki-e/cargo-minimal-versions/compare/v0.1.35...v0.1.36
