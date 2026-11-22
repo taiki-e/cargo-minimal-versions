@@ -36,7 +36,13 @@ impl Manager {
     /// Registers the given path.
     pub(crate) fn register(&self, contents: impl Into<Vec<u8>>, path: impl Into<PathBuf>) {
         let mut files = self.files.lock().unwrap_or_else(PoisonError::into_inner);
-        files.push(File { contents: contents.into(), path: path.into() });
+        files.push(File { contents: Some(contents.into()), path: path.into() });
+    }
+
+    /// Registers the given path to be removed on exit.
+    pub(crate) fn register_remove(&self, path: impl Into<PathBuf>) {
+        let mut files = self.files.lock().unwrap_or_else(PoisonError::into_inner);
+        files.push(File { contents: None, path: path.into() });
     }
 
     pub(crate) fn restore_all(&self) {
@@ -58,8 +64,8 @@ impl Drop for Manager {
 }
 
 struct File {
-    /// The original contents of this file.
-    contents: Vec<u8>,
+    /// The original contents of this file. None to remove.
+    contents: Option<Vec<u8>>,
     /// Path to this file.
     path: PathBuf,
 }
@@ -69,7 +75,11 @@ impl File {
         if term::verbose() {
             info!("restoring {}", self.path.display());
         }
-        fs::write(&self.path, &self.contents)?;
+        if let Some(contents) = &self.contents {
+            fs::write(&self.path, contents)?;
+        } else {
+            fs::remove_file(&self.path)?;
+        }
         Ok(())
     }
 }

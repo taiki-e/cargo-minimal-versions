@@ -12,6 +12,10 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Fix an issue with minimal versions check not working properly due to `Cargo.lock` is shared within the workspace. ([#23](https://github.com/taiki-e/cargo-minimal-versions/pull/23))
+
+  This can cause subtle regressions, so this release is considered breaking.
+
 ## [0.1.39] - 2026-11-22
 
 - Fix an issue where `-q`/`--quiet` is not forwarded to `cargo update`. ([#40](https://github.com/taiki-e/cargo-minimal-versions/issues/40))

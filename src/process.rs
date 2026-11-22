@@ -54,6 +54,11 @@ impl ProcessBuilder {
         self
     }
 
+    pub(crate) fn dir(&mut self, dir: impl AsRef<Path>) -> &mut Self {
+        self.cmd.current_dir(dir.as_ref());
+        self
+    }
+
     /// Enables all display-related flags.
     fn display_all(&self) {
         self.display_program_path.set(true);
