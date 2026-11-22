@@ -52,11 +52,12 @@ fn try_main() -> Result<()> {
     manifest::with(&ws.metadata, &args, remove_dev_deps, || {
         // Update Cargo.lock to minimal version dependencies.
         let mut cargo = ws.cargo_nightly();
-        if args.direct {
-            cargo.args(["update", "-Z", "direct-minimal-versions"]);
-        } else {
-            cargo.args(["update", "-Z", "minimal-versions"]);
+        cargo.arg("update");
+        if args.quiet {
+            cargo.arg("-q");
         }
+        let mode = if args.direct { "direct-minimal-versions" } else { "minimal-versions" };
+        cargo.args(["-Z", mode]);
         info!("running {cargo}");
         cargo.run()?;
 

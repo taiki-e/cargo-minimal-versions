@@ -12,6 +12,8 @@ Note: In this file, do not use the hard wrap in the middle of a sentence for com
 
 ## [Unreleased]
 
+- Fix an issue where `-q`/`--quiet` is not forwarded to `cargo update`. ([#40](https://github.com/taiki-e/cargo-minimal-versions/issues/40))
+
 ## [0.1.38] - 2026-11-01
 
 - Support `-m` alias [added in Cargo 1.97](https://github.com/rust-lang/cargo/pull/16858).

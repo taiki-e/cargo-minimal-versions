@@ -24,6 +24,7 @@ Cargo subcommand for proper use of -Z minimal-versions and -Z direct-minimal-ver
 pub(crate) struct Args {
     pub(crate) no_private: bool,
     pub(crate) direct: bool,
+    pub(crate) quiet: bool,
     pub(crate) subcommand: Subcommand,
     pub(crate) manifest_path: Option<String>,
     pub(crate) detach_path_deps: Option<DetachPathDeps>,
@@ -109,6 +110,7 @@ impl Args {
         let mut subcommand = None;
         let mut color = None;
         let mut manifest_path: Option<String> = None;
+        let mut quiet = false;
         let mut verbose = 0;
         let mut detach_path_deps = None;
 
@@ -175,6 +177,7 @@ impl Args {
 
                 // passthrough
                 Long(flag) => {
+                    quiet |= flag == "quiet";
                     let flag = format!("--{flag}");
                     if let Some(val) = parser.optional_value() {
                         cargo_args.push(format!("{flag}={}", val.string()?));
@@ -186,6 +189,7 @@ impl Args {
                     if matches!(flag, 'n' | 'q' | 'r') {
                         // To handle combined short flags properly, handle known
                         // short flags without value as special cases.
+                        quiet |= flag == 'q';
                         cargo_args.push(format!("-{flag}"));
                     } else if let Some(val) = parser.optional_value() {
                         cargo_args.push(format!("-{flag}{}", val.string()?));
@@ -224,6 +228,7 @@ impl Args {
         Ok(Some(Self {
             no_private,
             direct,
+            quiet,
             subcommand,
             manifest_path,
             detach_path_deps,
