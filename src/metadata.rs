@@ -30,6 +30,7 @@ pub(crate) struct Metadata {
     pub(crate) packages: Box<[Package]>,
     /// List of members of the workspace.
     pub(crate) workspace_members: Box<[PackageId]>,
+    pub(crate) target_directory: PathBuf,
     /// The absolute path to the root of the workspace.
     pub(crate) workspace_root: PathBuf,
 }
@@ -74,6 +75,7 @@ impl Metadata {
             cargo_version,
             packages: packages.into_boxed_slice(),
             workspace_members,
+            target_directory: map.remove_string("target_directory")?,
             workspace_root: map.remove_string("workspace_root")?,
         })
     }

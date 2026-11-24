@@ -15,9 +15,9 @@ mod manifest;
 mod metadata;
 mod restore;
 
-use std::{env, process::ExitCode};
+use std::{env, path::Path, process::ExitCode};
 
-use anyhow::Result;
+use anyhow::{Result, bail};
 
 use crate::{cargo::Workspace, cli::Args};
 
@@ -49,27 +49,67 @@ fn try_main() -> Result<()> {
                 a.starts_with("--example=") || a.starts_with("--test=") || a.starts_with("--bench=")
             }
         });
-    manifest::with(&ws.metadata, &args, remove_dev_deps, || {
-        // Update Cargo.lock to minimal version dependencies.
-        let mut cargo = ws.cargo_nightly();
-        cargo.arg("update");
-        if args.quiet {
-            cargo.arg("-q");
-        }
-        let mode = if args.direct { "direct-minimal-versions" } else { "minimal-versions" };
-        cargo.args(["-Z", mode]);
-        info!("running {cargo}");
-        cargo.run()?;
+    if !remove_dev_deps && args.detach_path_deps.is_some() {
+        bail!(
+            "--detach-path-deps is currently unsupported on subcommand that requires dev-dependencies: {}",
+            args.subcommand.as_str()
+        );
+    }
+    manifest::with(&ws.metadata, &args, remove_dev_deps, |ids, detach_workspace| {
+        let update_lockfile = |dir: Option<&Path>| {
+            // Update Cargo.lock to minimal version dependencies.
+            let mut cargo = ws.cargo_nightly();
+            cargo.arg("update");
+            if args.quiet {
+                cargo.arg("-q");
+            }
+            let mode = if args.direct { "direct-minimal-versions" } else { "minimal-versions" };
+            cargo.args(["-Z", mode]);
+            if let Some(dir) = dir {
+                cargo.dir(dir);
+                info!("running {cargo} on {}", dir.display());
+            } else {
+                info!("running {cargo}");
+            }
+            cargo.run()
+        };
 
         let mut cargo = ws.cargo();
         // TODO: Provide a way to do this without using cargo-hack. https://github.com/taiki-e/cargo-minimal-versions/issues/5
         cargo.arg("hack");
         cargo.args(&args.cargo_args);
+        if !detach_workspace && args.workspace {
+            cargo.arg("--workspace");
+        }
+        if let Some(dir) = &args.target_dir {
+            cargo.arg("--target-dir");
+            if detach_workspace {
+                cargo.arg(fs::canonicalize(dir)?);
+            } else {
+                cargo.arg(dir);
+            }
+        } else if detach_workspace {
+            cargo.arg("--target-dir");
+            cargo.arg(&ws.metadata.target_directory);
+        }
         if !args.rest.is_empty() {
             cargo.arg("--");
             cargo.args(&args.rest);
         }
-        info!("running {cargo}");
-        cargo.run()
+        if detach_workspace {
+            // TODO: respect --package/--exclude/--manifest-dir options
+            for id in ids {
+                let manifest_dir = ws.metadata[id].manifest_path.parent().unwrap();
+                update_lockfile(Some(manifest_dir))?;
+                cargo.dir(manifest_dir);
+                info!("running {cargo} on {}", manifest_dir.display());
+                cargo.run()?;
+            }
+            Ok(())
+        } else {
+            update_lockfile(None)?;
+            info!("running {cargo}");
+            cargo.run()
+        }
     })
 }
